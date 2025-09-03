@@ -1,10 +1,10 @@
 
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { Request, Response } from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
-export const create = async (req: ExpressRequest, res: ExpressResponse): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
 
@@ -26,7 +26,7 @@ export const create = async (req: ExpressRequest, res: ExpressResponse): Promise
     }
 };
 
-export const cancel = async (req: AuthenticatedRequest, res: ExpressResponse): Promise<void> => {
+export const cancel = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const customerId = req.customer?.id;

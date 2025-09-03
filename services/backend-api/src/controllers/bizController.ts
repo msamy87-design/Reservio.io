@@ -1,5 +1,5 @@
 
-import { Response as ExpressResponse } from 'express';
+import { Response } from 'express';
 import { AuthenticatedBusinessRequest } from '../middleware/authMiddleware';
 import * as businessService from '../services/businessService';
 import { BookingStatus, ReviewStatus } from '../types/booking';
@@ -7,7 +7,7 @@ import { mockBookings, mockReviews } from '../data/mockData';
 import * as reviewService from '../services/reviewService';
 
 
-export const updateProfile = async (req: AuthenticatedBusinessRequest, res: ExpressResponse): Promise<void> => {
+export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const businessId = req.business?.businessId;
         const { is_listed, public_image_url } = req.body;
@@ -40,7 +40,7 @@ export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Expr
     }
 };
 
-export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: ExpressResponse): Promise<void> => {
+export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { status } = req.body as { status: BookingStatus };
@@ -57,7 +57,7 @@ export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res
     }
 };
 
-export const getReviews = async (req: AuthenticatedBusinessRequest, res: ExpressResponse): Promise<void> => {
+export const getReviews = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         // In a real app, filter reviews for req.business.businessId
         const reviews = await reviewService.getReviewsByBusiness();
@@ -67,7 +67,7 @@ export const getReviews = async (req: AuthenticatedBusinessRequest, res: Express
     }
 };
 
-export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: ExpressResponse): Promise<void> => {
+export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { reviewId } = req.params;
         const { status } = req.body as { status: ReviewStatus };
@@ -76,7 +76,8 @@ export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res:
         res.status(200).json(review);
     } catch(error) {
         if (error instanceof Error && error.message === 'Review not found') {
-            return res.status(404).json({ message: error.message });
+            res.status(404).json({ message: error.message });
+            return;
         }
         res.status(500).json({ message: 'Error updating review status' });
     }

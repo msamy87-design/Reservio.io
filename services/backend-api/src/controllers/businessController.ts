@@ -1,9 +1,9 @@
 
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';
 
-export const search = async (req: ExpressRequest, res: ExpressResponse): Promise<void> => {
+export const search = async (req: Request, res: Response): Promise<void> => {
     try {
         const { location, service } = req.query;
 
@@ -25,7 +25,7 @@ export const search = async (req: ExpressRequest, res: ExpressResponse): Promise
     }
 };
 
-export const getById = async (req: ExpressRequest, res: ExpressResponse): Promise<void> => {
+export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const business = await businessService.getBusinessById(id);
@@ -43,7 +43,7 @@ export const getById = async (req: ExpressRequest, res: ExpressResponse): Promis
     }
 };
 
-export const getAvailability = async (req: ExpressRequest, res: ExpressResponse): Promise<void> => {
+export const getAvailability = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id: businessId } = req.params;
         const { serviceId, staffId, date } = req.query;
@@ -53,7 +53,7 @@ export const getAvailability = async (req: ExpressRequest, res: ExpressResponse)
             return;
         }
 
-        const availableSlots = await businessService.getAvailableSlots(staffId, serviceId, new Date(date as string));
+        const availableSlots = await businessService.getAvailableSlots(staffId as string, serviceId as string, new Date(date as string));
 
         res.status(200).json(availableSlots);
 

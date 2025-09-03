@@ -1,10 +1,10 @@
 
-import { Response as ExpressResponse } from 'express';
+import { Response } from 'express';
 import * as customerService from '../services/customerService';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 
-export const getMyBookings = async (req: AuthenticatedRequest, res: ExpressResponse): Promise<void> => {
+export const getMyBookings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
 

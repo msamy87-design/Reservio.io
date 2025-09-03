@@ -1,5 +1,5 @@
 
-import express, { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -38,7 +38,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // --- Routes ---
-app.get('/api', (req: ExpressRequest, res: ExpressResponse) => {
+app.get('/api', (req: Request, res: Response) => {
   res.send('Reservio API is running!');
 });
 

@@ -1,8 +1,8 @@
 
-import express from 'express';
+import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 
-const router = express.Router();
+const router = Router();
 
 // If you want to pin apiVersion:
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2024-06-20' });
@@ -14,7 +14,7 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;
       if (!sig || !WEBHOOK_SECRET) {

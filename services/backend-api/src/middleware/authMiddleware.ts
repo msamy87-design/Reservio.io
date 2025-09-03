@@ -1,5 +1,5 @@
 
-import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { PublicCustomerUser } from '../types/customer';
 import { AdminUser } from '../../../../types';
 
@@ -24,17 +24,17 @@ const mockVerifyBusinessToken = (token: string): { businessId: string, email: st
      return null;
 }
 
-export interface AuthenticatedRequest extends ExpressRequest {
+export interface AuthenticatedRequest extends Request {
   customer?: PublicCustomerUser;
 }
-export interface AuthenticatedBusinessRequest extends ExpressRequest {
+export interface AuthenticatedBusinessRequest extends Request {
   business?: { businessId: string, email: string };
 }
-export interface AuthenticatedAdminRequest extends ExpressRequest {
+export interface AuthenticatedAdminRequest extends Request {
   admin?: AdminUser;
 }
 
-export const protectCustomer = (req: ExpressRequest, res: ExpressResponse, next: NextFunction): void => {
+export const protectCustomer = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -59,7 +59,7 @@ export const protectCustomer = (req: ExpressRequest, res: ExpressResponse, next:
     }
 };
 
-export const protectBusiness = (req: ExpressRequest, res: ExpressResponse, next: NextFunction): void => {
+export const protectBusiness = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
     // This is a workaround for the mock environment. In a real app with separate frontends,
@@ -92,7 +92,7 @@ export const protectBusiness = (req: ExpressRequest, res: ExpressResponse, next:
     }
 };
 
-export const protectAdmin = (req: ExpressRequest, res: ExpressResponse, next: NextFunction): void => {
+export const protectAdmin = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
