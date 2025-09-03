@@ -1,7 +1,7 @@
+/// <reference types="vite/client" />
 
-import { PublicCustomerUser, Booking } from '../types';
-
-const API_BASE_URL = 'http://localhost:3001/api';
+import { PublicCustomerUser, Booking, NewReviewData, Review } from '../types';
+import { API_BASE_URL } from '../utils/env';
 
 const handleResponse = async (response: Response) => {
     const data = await response.json();
@@ -43,3 +43,15 @@ export const cancelMyBooking = async (bookingId: string, token: string): Promise
     });
     return handleResponse(response);
 };
+
+export const submitReview = async (reviewData: NewReviewData, token: string): Promise<Review> => {
+    const response = await fetch(`${API_BASE_URL}/reviews`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(reviewData),
+    });
+    return handleResponse(response);
+}

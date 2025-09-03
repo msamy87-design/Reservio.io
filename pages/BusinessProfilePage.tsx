@@ -1,6 +1,7 @@
+/// <reference types="vite/client" />
 
 import React, { useState, useEffect } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getBusinessById } from '../services/marketplaceApi';
 import { PublicBusinessProfile, PublicService } from '../types';
 import MarketplaceHeader from '../components/MarketplaceHeader';
@@ -9,14 +10,13 @@ import { MapPinIcon, PhoneIcon } from '../components/Icons';
 import BookingModal from '../components/BookingModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { STRIPE_PUBLISHABLE_KEY } from '../utils/env';
 
-// TODO: Replace with your actual Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51Pef1cRx0aQU5T8f0hIBAfFkXZz7r3cfF2gL0A0x2K8iXDwOdYvP2B2K29a0V4u3J13L8YfLgX5rQG2T65F6H8i200BvL4wH6j';
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 
 const BusinessProfilePage: React.FC = () => {
-    const { businessId } = ReactRouterDOM.useParams<{ businessId: string }>();
+    const { businessId } = useParams<{ businessId: string }>();
     const [business, setBusiness] = useState<PublicBusinessProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,6 +43,10 @@ const BusinessProfilePage: React.FC = () => {
     }, [businessId]);
 
     const handleBookNow = (service: PublicService) => {
+        if (!stripePromise) {
+            alert("Stripe is not configured. Please add VITE_STRIPE_PUBLISHABLE_KEY to your environment variables.");
+            return;
+        }
         setSelectedService(service);
         setIsBookingModalOpen(true);
     };

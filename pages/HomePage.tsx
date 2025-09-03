@@ -1,13 +1,12 @@
-
 import React, { useState } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SearchIcon, BusinessIcon } from '../components/Icons';
 import MarketplaceHeader from '../components/MarketplaceHeader';
 
 const HomePage: React.FC = () => {
     const [service, setService] = useState('');
     const [location, setLocation] = useState('');
-    const navigate = ReactRouterDOM.useNavigate();
+    const navigate = useNavigate();
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

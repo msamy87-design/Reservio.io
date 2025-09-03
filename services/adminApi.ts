@@ -1,7 +1,7 @@
+/// <reference types="vite/client" />
 
 import { AdminUser, PlatformStats, BusinessForAdmin, BusinessVerificationStatus } from '../types';
-
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../utils/env';
 
 const handleResponse = async (response: Response) => {
     if (response.status === 204) return null; // Handle No Content response

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 import { BusinessIcon } from '../components/Icons';
 
@@ -9,8 +8,8 @@ const CustomerLoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useCustomerAuth();
-  const navigate = ReactRouterDOM.useNavigate();
-  const location = ReactRouterDOM.useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const from = location.state?.from?.pathname || "/account";
 
@@ -31,18 +30,18 @@ const CustomerLoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <ReactRouterDOM.Link to="/" className="mx-auto h-12 w-auto flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <Link to="/" className="mx-auto h-12 w-auto flex items-center justify-center text-indigo-600 dark:text-indigo-400">
             <BusinessIcon className="h-10 w-10"/>
              <span className="ml-3 text-3xl font-bold tracking-wider text-gray-900 dark:text-gray-100">Reservio</span>
-          </ReactRouterDOM.Link>
+          </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
-            <ReactRouterDOM.Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
               create a new account
-            </ReactRouterDOM.Link>
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

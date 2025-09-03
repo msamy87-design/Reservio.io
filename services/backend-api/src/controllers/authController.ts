@@ -1,12 +1,8 @@
-
-
-// FIX: Import Request and Response types directly from express.
-import { Request, Response } from 'express';
+import express from 'express';
 import * as authService from '../services/authService';
 import { CustomerLoginRequest, CustomerSignupRequest } from '../types/auth';
 
-// FIX: Use explicit Request and Response types.
-export const customerLogin = async (req: Request, res: Response): Promise<void> => {
+export const customerLogin = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { email, password } = req.body as CustomerLoginRequest;
         if (!email || !password) {
@@ -24,8 +20,7 @@ export const customerLogin = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// FIX: Use explicit Request and Response types.
-export const customerSignup = async (req: Request, res: Response): Promise<void> => {
+export const customerSignup = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { full_name, email, password } = req.body as CustomerSignupRequest;
         if (!full_name || !email || !password) {
@@ -43,7 +38,7 @@ export const customerSignup = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const adminLogin = async (req: Request, res: Response): Promise<void> => {
+export const adminLogin = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {

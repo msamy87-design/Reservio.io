@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchBusinesses, updateBusinessStatus } from '../services/adminApi';
 import { BusinessForAdmin, BusinessVerificationStatus } from '../types';

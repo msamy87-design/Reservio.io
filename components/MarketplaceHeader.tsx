@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 import { BusinessIcon, SearchIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from './Icons';
 
@@ -11,7 +10,7 @@ interface MarketplaceHeaderProps {
 
 const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({ initialService = '', initialLocation = '' }) => {
     const { currentCustomer, logout } = useCustomerAuth();
-    const navigate = ReactRouterDOM.useNavigate();
+    const navigate = useNavigate();
     const [service, setService] = useState(initialService);
     const [location, setLocation] = useState(initialLocation);
 
@@ -27,10 +26,10 @@ const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({ initialService = 
         <header className="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm sticky top-0 z-20">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    <ReactRouterDOM.Link to="/" className="flex items-center gap-2">
+                    <Link to="/" className="flex items-center gap-2">
                         <BusinessIcon className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                         <span className="text-2xl font-bold tracking-wider text-gray-900 dark:text-gray-100">Reservio</span>
-                    </ReactRouterDOM.Link>
+                    </Link>
 
                     {/* Search bar for search results page */}
                     { (initialService || initialLocation) && (
@@ -45,27 +44,27 @@ const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({ initialService = 
                     )}
 
                     <div className="flex items-center gap-4">
-                        <ReactRouterDOM.Link to="/biz/login" className="hidden md:block text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-indigo-600">
+                        <Link to="/biz/login" className="hidden md:block text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-indigo-600">
                             For Business
-                        </ReactRouterDOM.Link>
+                        </Link>
                         {currentCustomer ? (
                             <div className="flex items-center gap-2">
-                                <ReactRouterDOM.Link to="/account" className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                                <Link to="/account" className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
                                     <UserCircleIcon className="h-5 w-5" />
                                     My Account
-                                </ReactRouterDOM.Link>
+                                </Link>
                                 <button onClick={logout} className="p-2 text-gray-500 hover:text-red-600" title="Logout">
                                     <ArrowRightOnRectangleIcon className="h-5 w-5" />
                                 </button>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <ReactRouterDOM.Link to="/login" className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <Link to="/login" className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
                                     Log In
-                                </ReactRouterDOM.Link>
-                                <ReactRouterDOM.Link to="/signup" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                                </Link>
+                                <Link to="/signup" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                                     Sign Up
-                                </ReactRouterDOM.Link>
+                                </Link>
                             </div>
                         )}
                     </div>

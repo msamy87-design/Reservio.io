@@ -621,7 +621,6 @@ let mockBusinessSettings: BusinessSettings = {
         deposit_type: 'fixed',
         deposit_value: 10.00
     },
-// FIX: Added missing 'notification_settings' property to align with BusinessSettings type.
     notification_settings: {
         new_booking_alerts: true,
         cancellation_alerts: true,

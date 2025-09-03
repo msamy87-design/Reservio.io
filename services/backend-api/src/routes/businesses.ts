@@ -1,8 +1,7 @@
-
-import express from 'express';
+import { Router } from 'express';
 import * as businessController from '../controllers/businessController';
 
-const router = express.Router();
+const router = Router();
 
 // Route: GET /api/businesses/search?location=...&service=...
 // Description: Searches for businesses based on location and/or service type.

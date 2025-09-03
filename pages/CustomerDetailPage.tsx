@@ -1,14 +1,13 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { Customer, Booking, NewCustomerData } from '../types';
 import { ArrowLeftIcon, PencilIcon } from '../components/Icons';
 import CustomerFormModal from '../components/CustomerFormModal';
 
 const CustomerDetailPage: React.FC = () => {
-    const { id } = ReactRouterDOM.useParams<{ id: string }>();
-    const navigate = ReactRouterDOM.useNavigate();
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const { customers, bookings, loading, updateCustomer } = useData();
 
     const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -64,7 +63,7 @@ const CustomerDetailPage: React.FC = () => {
     return (
         <>
             <div className="mb-6">
-                <button onClick={() => navigate('/customers')} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                <button onClick={() => navigate('/biz/customers')} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
                     <ArrowLeftIcon className="h-4 w-4" />
                     Back to Customers
                 </button>

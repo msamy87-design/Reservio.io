@@ -1,7 +1,7 @@
+/// <reference types="vite/client" />
 
 import { PublicBusinessProfile, NewPublicBookingData, Booking } from '../types';
-
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../utils/env';
 
 const handleResponse = async (response: Response) => {
     const data = await response.json();

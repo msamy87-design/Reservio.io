@@ -1,9 +1,8 @@
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as api from '../services/api';
 import { User } from '../types';
 import { useToast } from './ToastContext';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 type AuthUser = Omit<User, 'passwordHash'>;
 
@@ -21,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { addToast } = useToast();
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
 
   const checkUserSession = useCallback(async () => {
     setLoading(true);

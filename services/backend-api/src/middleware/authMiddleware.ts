@@ -1,7 +1,4 @@
-
-
-// FIX: Changed express import to resolve type conflicts.
-import { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import { PublicCustomerUser } from '../types/customer';
 import { AdminUser } from '../../../../types';
 
@@ -26,23 +23,17 @@ const mockVerifyBusinessToken = (token: string): { businessId: string, email: st
      return null;
 }
 
-// Extend the Express Request type to include our custom property
-// FIX: Extend the correct Request type from express.
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends express.Request {
   customer?: PublicCustomerUser;
 }
-// FIX: Extend the correct Request type from express.
-export interface AuthenticatedBusinessRequest extends Request {
+export interface AuthenticatedBusinessRequest extends express.Request {
   business?: { businessId: string, email: string };
 }
-// FIX: Extend the correct Request type from express.
-export interface AuthenticatedAdminRequest extends Request {
+export interface AuthenticatedAdminRequest extends express.Request {
   admin?: AdminUser;
 }
 
-
-// FIX: Use explicit Response type and correct AuthenticatedRequest type.
-export const protectCustomer = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+export const protectCustomer = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -60,23 +51,21 @@ export const protectCustomer = (req: AuthenticatedRequest, res: Response, next: 
             return;
         }
         
-        // Attach user to the request object
-        req.customer = decoded.user as PublicCustomerUser;
+        (req as AuthenticatedRequest).customer = decoded.user as PublicCustomerUser;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Not authorized, token failed' });
     }
 };
 
-// FIX: Use explicit Response type and correct AuthenticatedBusinessRequest type.
-export const protectBusiness = (req: AuthenticatedBusinessRequest, res: Response, next: NextFunction): void => {
+export const protectBusiness = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
     // This is a workaround for the mock environment. In a real app with separate frontends,
     // you would pass the token in the Authorization header.
     // For now, we assume the token is valid if any mock business token exists.
     // Let's check for a body parameter for simulation.
-    token = req.headers.authorization?.split(' ')[1] || req.body.token;
+    token = req.headers.authorization?.split(' ')[1] || (req.body as any).token;
     
     // This is a HACK for this project's structure since we can't access session storage from the backend API.
     // We will simulate a valid token.
@@ -95,14 +84,14 @@ export const protectBusiness = (req: AuthenticatedBusinessRequest, res: Response
             return;
         }
         
-        req.business = decoded;
+        (req as AuthenticatedBusinessRequest).business = decoded;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Not authorized, token failed' });
     }
 };
 
-export const protectAdmin = (req: AuthenticatedAdminRequest, res: Response, next: NextFunction): void => {
+export const protectAdmin = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -120,7 +109,7 @@ export const protectAdmin = (req: AuthenticatedAdminRequest, res: Response, next
             return;
         }
         
-        req.admin = decoded.user as AdminUser;
+        (req as AuthenticatedAdminRequest).admin = decoded.user as AdminUser;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Not authorized, token failed' });

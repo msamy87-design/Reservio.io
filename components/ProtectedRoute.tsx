@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Staff } from '../types';
 
 const PAGE_PERMISSIONS: { [key: string]: Staff['role'][] } = {
@@ -20,7 +19,7 @@ const PAGE_PERMISSIONS: { [key: string]: Staff['role'][] } = {
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, loading } = useAuth();
-  const location = ReactRouterDOM.useLocation();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -31,7 +30,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (!currentUser) {
-    return <ReactRouterDOM.Navigate to="/biz/login" state={{ from: location }} replace />;
+    return <Navigate to="/biz/login" state={{ from: location }} replace />;
   }
 
   // Role-Based Access Control Logic
@@ -59,7 +58,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (!isAllowed) {
     // If not allowed, redirect to a safe page (dashboard)
     // This prevents users from accessing URLs they shouldn't
-    return <ReactRouterDOM.Navigate to="/biz/dashboard" state={{ from: location }} replace />;
+    return <Navigate to="/biz/dashboard" state={{ from: location }} replace />;
   }
 
 

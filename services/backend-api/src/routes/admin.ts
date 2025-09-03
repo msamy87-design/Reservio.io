@@ -1,9 +1,8 @@
-
-import express from 'express';
+import { Router } from 'express';
 import * as adminController from '../controllers/adminController';
 import { protectAdmin } from '../middleware/authMiddleware';
 
-const router = express.Router();
+const router = Router();
 
 // All routes in this file require an authenticated admin user.
 router.use(protectAdmin);

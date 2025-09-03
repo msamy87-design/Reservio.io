@@ -1,11 +1,8 @@
-
-
 import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, CustomerUser } from '../types/booking'; // Using a shared type structure
 import { AdminUser, BusinessSettings, BusinessForAdmin } from '../../../../types';
 
 // --- MOCK DATABASE ---
 
-// FIX: Add passwordHash to the type to match the data structure and fix auth errors.
 export let mockAdminUsers: (AdminUser & { passwordHash: string })[] = [
     { id: 'admin_1', email: 'superadmin@reservio.com', full_name: 'Super Admin', role: 'superadmin', passwordHash: 'hashed_supersecret' }
 ];

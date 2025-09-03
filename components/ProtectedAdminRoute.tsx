@@ -1,11 +1,10 @@
-
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentAdmin, loading } = useAdminAuth();
-  const location = ReactRouterDOM.useLocation();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -16,7 +15,7 @@ const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   if (!currentAdmin) {
-    return <ReactRouterDOM.Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

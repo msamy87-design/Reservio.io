@@ -1,7 +1,5 @@
-
 import React from 'react';
-// FIX: Use namespace import for react-router-dom to fix module resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import ApiKeysPage from './pages/ApiKeysPage';
@@ -40,33 +38,33 @@ import AdminBusinessesPage from './pages/AdminBusinessesPage';
 
 const BizRoutes: React.FC = () => (
     <Layout>
-      <ReactRouterDOM.Routes>
-        <ReactRouterDOM.Route path="/" element={<ReactRouterDOM.Navigate to="/biz/bookings" replace />} />
-        <ReactRouterDOM.Route path="/dashboard" element={<DashboardPage />} />
-        <ReactRouterDOM.Route path="/bookings" element={<BookingsPage />} />
-        <ReactRouterDOM.Route path="/customers" element={<CustomersPage />} />
-        <ReactRouterDOM.Route path="/customers/:id" element={<CustomerDetailPage />} />
-        <ReactRouterDOM.Route path="/staff" element={<StaffPage />} />
-        <ReactRouterDOM.Route path="/services" element={<ServicesPage />} />
-        <ReactRouterDOM.Route path="/inventory" element={<ProductsPage />} />
-        <ReactRouterDOM.Route path="/marketing" element={<MarketingPage />} />
-        <ReactRouterDOM.Route path="/reviews" element={<ReviewsPage />} />
-        <ReactRouterDOM.Route path="/reports" element={<ReportsPage />} />
-        <ReactRouterDOM.Route path="/developer/api-keys" element={<ApiKeysPage />} />
-        <ReactRouterDOM.Route path="/settings" element={<SettingsPage />} />
-      </ReactRouterDOM.Routes>
+      <Routes>
+        <Route path="/" element={<Navigate to="/biz/bookings" replace />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/bookings" element={<BookingsPage />} />
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route path="/staff" element={<StaffPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/inventory" element={<ProductsPage />} />
+        <Route path="/marketing" element={<MarketingPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/developer/api-keys" element={<ApiKeysPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
     </Layout>
 );
 
 const MarketplaceRoutes: React.FC = () => (
   <CustomerAuthProvider>
-    <ReactRouterDOM.Routes>
-      <ReactRouterDOM.Route path="/" element={<HomePage />} />
-      <ReactRouterDOM.Route path="/search" element={<SearchResultsPage />} />
-      <ReactRouterDOM.Route path="/business/:businessId" element={<BusinessProfilePage />} />
-      <ReactRouterDOM.Route path="/login" element={<CustomerLoginPage />} />
-      <ReactRouterDOM.Route path="/signup" element={<CustomerSignupPage />} />
-      <ReactRouterDOM.Route 
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/search" element={<SearchResultsPage />} />
+      <Route path="/business/:businessId" element={<BusinessProfilePage />} />
+      <Route path="/login" element={<CustomerLoginPage />} />
+      <Route path="/signup" element={<CustomerSignupPage />} />
+      <Route 
         path="/account" 
         element={
           <ProtectedCustomerRoute>
@@ -74,17 +72,17 @@ const MarketplaceRoutes: React.FC = () => (
           </ProtectedCustomerRoute>
         } 
       />
-    </ReactRouterDOM.Routes>
+    </Routes>
   </CustomerAuthProvider>
 );
 
 const AdminRoutes: React.FC = () => (
   <AdminLayout>
-    <ReactRouterDOM.Routes>
-      <ReactRouterDOM.Route path="/" element={<ReactRouterDOM.Navigate to="/admin/dashboard" replace />} />
-      <ReactRouterDOM.Route path="/dashboard" element={<AdminDashboardPage />} />
-      <ReactRouterDOM.Route path="/businesses" element={<AdminBusinessesPage />} />
-    </ReactRouterDOM.Routes>
+    <Routes>
+      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/dashboard" element={<AdminDashboardPage />} />
+      <Route path="/businesses" element={<AdminBusinessesPage />} />
+    </Routes>
   </AdminLayout>
 );
 
@@ -94,14 +92,14 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <ToastProvider>
         <ThemeProvider>
-          <ReactRouterDOM.HashRouter>
+          <HashRouter>
             <AuthProvider>
               <DataProvider>
                 <AdminAuthProvider>
-                  <ReactRouterDOM.Routes>
+                  <Routes>
                     {/* Admin Portal Routes */}
-                    <ReactRouterDOM.Route path="/admin/login" element={<AdminLoginPage />} />
-                    <ReactRouterDOM.Route 
+                    <Route path="/admin/login" element={<AdminLoginPage />} />
+                    <Route 
                       path="/admin/*"
                       element={
                         <ProtectedAdminRoute>
@@ -111,9 +109,9 @@ const App: React.FC = () => {
                     />
 
                     {/* Business Portal Routes */}
-                    <ReactRouterDOM.Route path="/biz/login" element={<LoginPage />} />
-                    <ReactRouterDOM.Route path="/biz/signup" element={<SignupPage />} />
-                    <ReactRouterDOM.Route 
+                    <Route path="/biz/login" element={<LoginPage />} />
+                    <Route path="/biz/signup" element={<SignupPage />} />
+                    <Route 
                       path="/biz/*" 
                       element={
                         <ProtectedRoute>
@@ -123,12 +121,12 @@ const App: React.FC = () => {
                     />
 
                     {/* All other routes are handled by MarketplaceRoutes */}
-                    <ReactRouterDOM.Route path="/*" element={<MarketplaceRoutes />} />
-                  </ReactRouterDOM.Routes>
+                    <Route path="/*" element={<MarketplaceRoutes />} />
+                  </Routes>
                 </AdminAuthProvider>
               </DataProvider>
             </AuthProvider>
-          </ReactRouterDOM.HashRouter>
+          </HashRouter>
         </ThemeProvider>
       </ToastProvider>
     </ErrorBoundary>

@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Customer, NewCustomerData } from '../types';
 import CustomerFormModal from '../components/CustomerFormModal';
 import { PlusIcon, SearchIcon } from '../components/Icons';
@@ -14,7 +13,7 @@ const CustomersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer =>
@@ -111,7 +110,7 @@ const CustomersPage: React.FC = () => {
                     <tr 
                         key={customer.id} 
                         className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
-                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        onClick={() => navigate(`/biz/customers/${customer.id}`)}
                     >
                       <td className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
                         {customer.full_name}

@@ -1,13 +1,9 @@
-
-
-// FIX: Import Response type directly from express.
-import { Response } from 'express';
+import express from 'express';
 import * as customerService from '../services/customerService';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 
-// FIX: Use explicit Response type. AuthenticatedRequest will be fixed in middleware.
-export const getMyBookings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getMyBookings = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
 

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { PublicBusinessProfile } from '../types';
 import StarRating from './StarRating';
 
@@ -22,12 +21,12 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business }) => {
                     </span>
                 </div>
                 <div className="mt-auto pt-4">
-                     <ReactRouterDOM.Link 
+                     <Link 
                         to={`/business/${business.id}`}
                         className="block text-center w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                         View Details
-                    </ReactRouterDOM.Link>
+                    </Link>
                 </div>
             </div>
         </div>

@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { searchBusinesses } from '../services/marketplaceApi';
 import { PublicBusinessProfile } from '../types';
 import BusinessCard from '../components/BusinessCard';
 import MarketplaceHeader from '../components/MarketplaceHeader';
 
 const SearchResultsPage: React.FC = () => {
-    const [searchParams] = ReactRouterDOM.useSearchParams();
+    const [searchParams] = useSearchParams();
     const [businesses, setBusinesses] = useState<PublicBusinessProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

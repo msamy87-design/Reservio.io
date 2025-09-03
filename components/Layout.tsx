@@ -1,7 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-// FIX: Use namespace import for react-router-dom to fix module resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { DashboardIcon, KeyIcon, SettingsIcon, BusinessIcon, UsersIcon, CalendarIcon, TagIcon, BriefcaseIcon, ChartBarIcon, UserCircleIcon, ArrowRightOnRectangleIcon, MegaphoneIcon, StarIcon, ArchiveBoxIcon, SunIcon, MoonIcon, ComputerDesktopIcon, CheckIcon, ShoppingCartIcon } from './Icons';
 import ToastContainer from './ToastContainer';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +14,7 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
-  <ReactRouterDOM.NavLink
+  <NavLink
     to={to}
     className={({ isActive }) =>
       `flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
@@ -28,27 +26,27 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
   >
     {icon}
     <span className="ml-4">{label}</span>
-  </ReactRouterDOM.NavLink>
+  </NavLink>
 );
 
 const navConfig: { to: string; icon: React.FC<any>; label: string; roles: Staff['role'][] }[] = [
-    { to: '/dashboard', icon: DashboardIcon, label: 'Dashboard', roles: ['Owner', 'Manager', 'Assistant', 'Stylist'] },
-    { to: '/bookings', icon: CalendarIcon, label: 'Bookings', roles: ['Owner', 'Manager', 'Assistant', 'Stylist'] },
-    { to: '/customers', icon: UsersIcon, label: 'Customers', roles: ['Owner', 'Manager'] },
-    { to: '/staff', icon: BriefcaseIcon, label: 'Staff', roles: ['Owner', 'Manager'] },
-    { to: '/services', icon: TagIcon, label: 'Services', roles: ['Owner', 'Manager'] },
-    { to: '/inventory', icon: ArchiveBoxIcon, label: 'Inventory', roles: ['Owner', 'Manager'] },
-    { to: '/marketing', icon: MegaphoneIcon, label: 'Marketing', roles: ['Owner', 'Manager'] },
-    { to: '/reviews', icon: StarIcon, label: 'Reviews', roles: ['Owner', 'Manager'] },
-    { to: '/reports', icon: ChartBarIcon, label: 'Reports', roles: ['Owner', 'Manager'] },
+    { to: '/biz/dashboard', icon: DashboardIcon, label: 'Dashboard', roles: ['Owner', 'Manager', 'Assistant', 'Stylist'] },
+    { to: '/biz/bookings', icon: CalendarIcon, label: 'Bookings', roles: ['Owner', 'Manager', 'Assistant', 'Stylist'] },
+    { to: '/biz/customers', icon: UsersIcon, label: 'Customers', roles: ['Owner', 'Manager'] },
+    { to: '/biz/staff', icon: BriefcaseIcon, label: 'Staff', roles: ['Owner', 'Manager'] },
+    { to: '/biz/services', icon: TagIcon, label: 'Services', roles: ['Owner', 'Manager'] },
+    { to: '/biz/inventory', icon: ArchiveBoxIcon, label: 'Inventory', roles: ['Owner', 'Manager'] },
+    { to: '/biz/marketing', icon: MegaphoneIcon, label: 'Marketing', roles: ['Owner', 'Manager'] },
+    { to: '/biz/reviews', icon: StarIcon, label: 'Reviews', roles: ['Owner', 'Manager'] },
+    { to: '/biz/reports', icon: ChartBarIcon, label: 'Reports', roles: ['Owner', 'Manager'] },
 ];
 
 const developerNavConfig = [
-    { to: '/developer/api-keys', icon: KeyIcon, label: 'API Keys', roles: ['Owner'] }
+    { to: '/biz/developer/api-keys', icon: KeyIcon, label: 'API Keys', roles: ['Owner'] }
 ];
 
 const settingsNavConfig = [
-    { to: '/settings', icon: SettingsIcon, label: 'Settings', roles: ['Owner'] }
+    { to: '/biz/settings', icon: SettingsIcon, label: 'Settings', roles: ['Owner'] }
 ];
 
 

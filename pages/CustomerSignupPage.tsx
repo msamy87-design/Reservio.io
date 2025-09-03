@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 import { BusinessIcon } from '../components/Icons';
 
@@ -10,7 +9,7 @@ const CustomerSignupPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signup } = useCustomerAuth();
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,18 +32,18 @@ const CustomerSignupPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-           <ReactRouterDOM.Link to="/" className="mx-auto h-12 w-auto flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+           <Link to="/" className="mx-auto h-12 w-auto flex items-center justify-center text-indigo-600 dark:text-indigo-400">
             <BusinessIcon className="h-10 w-10"/>
              <span className="ml-3 text-3xl font-bold tracking-wider text-gray-900 dark:text-gray-100">Reservio</span>
-          </ReactRouterDOM.Link>
+          </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
-            <ReactRouterDOM.Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
               Sign in
-            </ReactRouterDOM.Link>
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { DashboardIcon, BusinessIcon, UsersIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon } from './Icons';
 import ToastContainer from './ToastContainer';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
@@ -12,7 +11,7 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
-  <ReactRouterDOM.NavLink
+  <NavLink
     to={to}
     className={({ isActive }) =>
       `flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
@@ -24,7 +23,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
   >
     {icon}
     <span className="ml-4">{label}</span>
-  </ReactRouterDOM.NavLink>
+  </NavLink>
 );
 
 const navConfig = [

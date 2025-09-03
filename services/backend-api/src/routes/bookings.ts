@@ -1,9 +1,8 @@
-
-import express from 'express';
+import { Router } from 'express';
 import * as bookingController from '../controllers/bookingController';
 import { protectCustomer } from '../middleware/authMiddleware';
 
-const router = express.Router();
+const router = Router();
 
 // Route: POST /api/bookings
 // Description: Allows a public user to create a new booking.

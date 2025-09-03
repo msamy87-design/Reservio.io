@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { BusinessIcon } from '../components/Icons';
 
 const LoginPage: React.FC = () => {
@@ -37,9 +36,9 @@ const LoginPage: React.FC = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
-            <ReactRouterDOM.Link to="/biz/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/biz/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
               create a new business account
-            </ReactRouterDOM.Link>
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

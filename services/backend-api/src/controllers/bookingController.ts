@@ -1,13 +1,9 @@
-
-
-// FIX: Import Request and Response types directly from express.
-import { Request, Response } from 'express';
+import express from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
-// FIX: Use explicit Request and Response types.
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
 
@@ -29,8 +25,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Use explicit Response type. AuthenticatedRequest will be fixed in middleware.
-export const cancel = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const cancel = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;
         const customerId = req.customer?.id;

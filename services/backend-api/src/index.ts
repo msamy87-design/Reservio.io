@@ -1,8 +1,8 @@
-
-
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import businessesRouter from './routes/businesses';
 import bookingsRouter from './routes/bookings';
 import authRouter from './routes/auth';
@@ -10,37 +10,58 @@ import customerRouter from './routes/customer';
 import bizRouter from './routes/biz';
 import paymentsRouter from './routes/payments';
 import adminRouter from './routes/admin';
+import reviewsRouter from './routes/reviews';
+import stripeWebhooksRouter from './routes/webhooks';
 import { runSimulatedCronJobs } from './services/notificationService';
 
 dotenv.config();
 
-const app: express.Express = express();
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors()); // Enable Cross-Origin Resource Sharing
-app.use(express.json({ limit: '10mb' })); // Enable parsing of JSON request bodies, increase limit for images
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// --- Security Middleware ---
+app.use(helmet());
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 500, // Limit each IP to 500 requests per windowMs
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+app.use(limiter);
 
-// Routes
-// FIX: Use explicit Request and Response types from express to fix method errors.
-app.get('/api', (req: Request, res: Response) => {
+// --- Core Middleware ---
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+};
+app.use(cors(corsOptions));
+
+// --- Routes ---
+app.get('/api', (req: express.Request, res: express.Response) => {
   res.send('Reservio API is running!');
 });
+
+// ⚠️ Webhooks must come BEFORE JSON body parsing
+app.use('/api/webhooks', stripeWebhooksRouter);
+
+// JSON/body parsers for normal routes
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/businesses', businessesRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/customer', customerRouter);
+app.use('/api/reviews', reviewsRouter);
 app.use('/api/biz', bizRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/admin', adminRouter);
 
 
-// Start Server
+// --- Start Server ---
 app.listen(PORT, () => {
   console.log(`[server]: Server is running at http://localhost:${PORT}`);
+  console.log(`[server]: Accepting requests from ${corsOptions.origin}`);
   
-  // Run simulated cron jobs on startup
   runSimulatedCronJobs();
 });

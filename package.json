@@ -1,31 +1,33 @@
 {
-  "name": "reservio-business-portal",
+  "name": "reservio-portal",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.1",
-    "react-router-dom": "^7.8.2",
-    "react-dom": "^19.1.1",
-    "recharts": "^2.12.7",
+    "@stripe/react-stripe-js": "^2.9.0",
+    "@stripe/stripe-js": "^4.1.0",
+    "date-fns": "^3.6.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
-    "express": "^5.1.0",
-    "cors": "^2.8.5",
-    "date-fns": "^3.6.0",
-    "@stripe/stripe-js": "^4.1.0",
-    "@stripe/react-stripe-js": "^2.8.0",
-    "dotenv": "^17.2.2",
-    "stripe": "^18.5.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.23.1",
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.13"
+  },
+  "engines": {
+    "node": ">=18.18 <23"
   }
 }

@@ -1,9 +1,8 @@
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as adminApi from '../services/adminApi';
 import { AdminUser } from '../types';
 import { useToast } from './ToastContext';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const ADMIN_TOKEN_KEY = 'reservio_admin_token';
 
@@ -22,7 +21,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { addToast } = useToast();
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
 
   const loadSession = useCallback(() => {
     setLoading(true);
@@ -84,9 +83,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 export const useAdminAuth = (): AdminAuthContextType => {
-  const context = useContext(AdminAuthContext);
-  if (context === undefined) {
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
-  }
-  return context;
+    const context = useContext(AdminAuthContext);
+    if (context === undefined) {
+        throw new Error('useAdminAuth must be used within an AdminAuthProvider');
+    }
+    return context;
 };

@@ -1,11 +1,10 @@
-
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 
 const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentCustomer, loading } = useCustomerAuth();
-  const location = ReactRouterDOM.useLocation();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -16,7 +15,7 @@ const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   if (!currentCustomer) {
-    return <ReactRouterDOM.Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

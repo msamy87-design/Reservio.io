@@ -1,8 +1,7 @@
-
-import express from 'express';
+import { Router } from 'express';
 import * as authController from '../controllers/authController';
 
-const router = express.Router();
+const router = Router();
 
 // Route: POST /api/auth/customer/login
 router.post('/customer/login', authController.customerLogin);

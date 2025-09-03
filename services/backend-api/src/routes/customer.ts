@@ -1,9 +1,8 @@
-
-import express from 'express';
+import { Router } from 'express';
 import * as customerController from '../controllers/customerController';
 import { protectCustomer } from '../middleware/authMiddleware';
 
-const router = express.Router();
+const router = Router();
 
 // All routes in this file are protected and require a logged-in customer.
 router.use(protectCustomer);
