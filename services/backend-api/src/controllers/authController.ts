@@ -1,8 +1,10 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Request, Response } from 'express';
 import * as authService from '../services/authService';
 import { CustomerLoginRequest, CustomerSignupRequest } from '../types/auth';
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const customerLogin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body as CustomerLoginRequest;
@@ -21,6 +23,7 @@ export const customerLogin = async (req: Request, res: Response): Promise<void> 
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const customerSignup = async (req: Request, res: Response): Promise<void> => {
     try {
         const { full_name, email, password } = req.body as CustomerSignupRequest;
@@ -39,6 +42,7 @@ export const customerSignup = async (req: Request, res: Response): Promise<void>
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const adminLogin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;

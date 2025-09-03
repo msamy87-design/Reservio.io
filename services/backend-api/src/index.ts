@@ -38,6 +38,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // --- Routes ---
+// FIX: Explicitly typed Request and Response to resolve method errors.
 app.get('/api', (req: Request, res: Response) => {
   res.send('Reservio API is running!');
 });

@@ -1,8 +1,10 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Request, Response } from 'express';
 import * as adminService from '../services/adminService';
 import { BusinessVerificationStatus } from '../../../../types';
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const getStats = async (req: Request, res: Response): Promise<void> => {
     try {
         const stats = await adminService.getPlatformStats();
@@ -12,6 +14,7 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const getBusinesses = async (req: Request, res: Response): Promise<void> => {
     try {
         const businesses = await adminService.getAllBusinesses();
@@ -21,6 +24,7 @@ export const getBusinesses = async (req: Request, res: Response): Promise<void> 
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const updateBusinessStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;

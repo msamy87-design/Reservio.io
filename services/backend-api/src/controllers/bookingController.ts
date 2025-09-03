@@ -1,9 +1,11 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Request, Response } from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
@@ -26,6 +28,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const cancel = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;

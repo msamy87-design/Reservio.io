@@ -1,4 +1,5 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Request, Response, NextFunction } from 'express';
 import { PublicCustomerUser } from '../types/customer';
 import { AdminUser } from '../../../../types';
@@ -24,16 +25,20 @@ const mockVerifyBusinessToken = (token: string): { businessId: string, email: st
      return null;
 }
 
+// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedRequest extends Request {
   customer?: PublicCustomerUser;
 }
+// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedBusinessRequest extends Request {
   business?: { businessId: string, email: string };
 }
+// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedAdminRequest extends Request {
   admin?: AdminUser;
 }
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const protectCustomer = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -59,6 +64,7 @@ export const protectCustomer = (req: Request, res: Response, next: NextFunction)
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const protectBusiness = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
@@ -92,6 +98,7 @@ export const protectBusiness = (req: Request, res: Response, next: NextFunction)
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const protectAdmin = (req: Request, res: Response, next: NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

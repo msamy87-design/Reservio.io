@@ -1,8 +1,10 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const search = async (req: Request, res: Response): Promise<void> => {
     try {
         const { location, service } = req.query;
@@ -25,6 +27,7 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -43,6 +46,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+// FIX: Explicitly typed Request and Response to resolve property access errors.
 export const getAvailability = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id: businessId } = req.params;

@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { searchBusinesses } from '../services/marketplaceApi';
 import { PublicBusinessProfile } from '../types';
 import BusinessCard from '../components/BusinessCard';
 import MarketplaceHeader from '../components/MarketplaceHeader';
+import MarketplaceFooter from '../components/MarketplaceFooter';
 
 const SearchResultsPage: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -67,14 +69,15 @@ const SearchResultsPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
             <MarketplaceHeader initialService={serviceQuery} initialLocation={locationQuery} />
-            <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
                     Showing {businesses.length} results
                 </h1>
                 {renderContent()}
             </main>
+            <MarketplaceFooter />
         </div>
     );
 };

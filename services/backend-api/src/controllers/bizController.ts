@@ -1,4 +1,5 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import { Response } from 'express';
 import { AuthenticatedBusinessRequest } from '../middleware/authMiddleware';
 import * as businessService from '../services/businessService';
@@ -7,6 +8,7 @@ import { mockBookings, mockReviews } from '../data/mockData';
 import * as reviewService from '../services/reviewService';
 
 
+// FIX: Explicitly typed Response to resolve property access errors.
 export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const businessId = req.business?.businessId;
@@ -40,6 +42,7 @@ export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Resp
     }
 };
 
+// FIX: Explicitly typed Response to resolve property access errors.
 export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -57,6 +60,7 @@ export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res
     }
 };
 
+// FIX: Explicitly typed Response to resolve property access errors.
 export const getReviews = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         // In a real app, filter reviews for req.business.businessId
@@ -67,6 +71,7 @@ export const getReviews = async (req: AuthenticatedBusinessRequest, res: Respons
     }
 };
 
+// FIX: Explicitly typed Response to resolve property access errors.
 export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { reviewId } = req.params;

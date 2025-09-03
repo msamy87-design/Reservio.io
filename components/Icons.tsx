@@ -254,3 +254,33 @@ export const ShieldCheckIcon: React.FC<IconProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
   </svg>
 );
+
+export const ScissorsIcon: React.FC<IconProps> = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7.843 16.276a2.25 2.25 0 01-3.182 0l-1.38-1.38a2.25 2.25 0 010-3.182l5.416-5.416a2.25 2.25 0 013.182 0l1.38 1.38a2.25 2.25 0 010 3.182L7.843 16.276zm10.528-10.528a2.25 2.25 0 010 3.182L11.1 16.276a2.25 2.25 0 01-3.182 0l-1.38-1.38a2.25 2.25 0 010-3.182l7.271-7.271a2.25 2.25 0 013.182 0zM9.25 7.5a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm6.128 6.128a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+  </svg>
+);
+
+export const SparklesIcon: React.FC<IconProps> = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.5 13.5l.813 2.846a4.5 4.5 0 01-3.09 3.09L12 21.75l-2.846.813a4.5 4.5 0 01-3.09-3.09L5.25 18l.813-2.846a4.5 4.5 0 013.09-3.09L12 11.25l2.846.813a4.5 4.5 0 013.09 3.09z" />
+  </svg>
+);
+
+export const PaintBrushIcon: React.FC<IconProps> = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.998 15.998 0 011.622-3.385m5.043.025a15.998 15.998 0 001.622-3.385m3.385 5.043a15.998 15.998 0 00-1.622-3.385m-5.043.025a15.998 15.998 0 01-3.388-1.621m7.732 7.732a4.5 4.5 0 00-6.364-6.364m6.364 6.364a15.998 15.998 0 00-1.622-3.385m-1.622 5.043a15.998 15.998 0 01-3.388-1.622m3.388 1.622a4.5 4.5 0 006.364-6.364m-6.364 6.364l-4.5-4.5" />
+    </svg>
+);
+
+export const UserGroupIcon: React.FC<IconProps> = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.289 2.72a3 3 0 01-4.682-2.72 9.094 9.094 0 013.741-.479m7.289 2.72a8.97 8.97 0 01-7.289 2.72M12 12.75a4.5 4.5 0 110-9 4.5 4.5 0 010 9z" />
+    </svg>
+);
+
+export const CheckBadgeIcon: React.FC<IconProps> = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);

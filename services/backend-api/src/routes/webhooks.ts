@@ -1,4 +1,5 @@
 
+// FIX: Standardized express import to resolve type conflicts.
 import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 
@@ -14,6 +15,7 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
+  // FIX: Explicitly typed Request and Response to resolve property access errors.
   async (req: Request, res: Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;

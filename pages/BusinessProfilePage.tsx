@@ -1,3 +1,4 @@
+
 /// <reference types="vite/client" />
 
 import React, { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import BookingModal from '../components/BookingModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { STRIPE_PUBLISHABLE_KEY } from '../utils/env';
+import MarketplaceFooter from '../components/MarketplaceFooter';
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
@@ -67,9 +69,9 @@ const BusinessProfilePage: React.FC = () => {
 
     return (
         <Elements stripe={stripePromise}>
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
                 <MarketplaceHeader />
-                <main>
+                <main className="flex-grow">
                     {/* Hero Section */}
                     <div className="relative h-64 sm:h-80 lg:h-96">
                         <img src={business.imageUrl} alt={`${business.name} hero`} className="w-full h-full object-cover" />
@@ -151,6 +153,7 @@ const BusinessProfilePage: React.FC = () => {
                         </div>
                     </div>
                 </main>
+                <MarketplaceFooter />
             </div>
             {isBookingModalOpen && selectedService && business && (
                  <BookingModal
