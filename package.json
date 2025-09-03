@@ -1,0 +1,31 @@
+{
+  "name": "reservio-business-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-router-dom": "^7.8.2",
+    "react-dom": "^19.1.1",
+    "recharts": "^2.12.7",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "@stripe/stripe-js": "^4.1.0",
+    "@stripe/react-stripe-js": "^2.8.0",
+    "dotenv": "^17.2.2",
+    "stripe": "^18.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

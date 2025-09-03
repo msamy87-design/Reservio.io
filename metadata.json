@@ -1,0 +1,5 @@
+{
+  "name": "Reservio Business Portal",
+  "description": "A comprehensive business management portal for the Reservio platform, allowing businesses to manage their services, bookings, customers, and developer API keys.",
+  "requestFramePermissions": []
+}
