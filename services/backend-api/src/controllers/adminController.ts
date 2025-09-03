@@ -1,8 +1,9 @@
-import express from 'express';
+
+import { Request, Response } from 'express';
 import * as adminService from '../services/adminService';
 import { BusinessVerificationStatus } from '../../../../types';
 
-export const getStats = async (req: express.Request, res: express.Response): Promise<void> => {
+export const getStats = async (req: Request, res: Response): Promise<void> => {
     try {
         const stats = await adminService.getPlatformStats();
         res.status(200).json(stats);
@@ -11,7 +12,7 @@ export const getStats = async (req: express.Request, res: express.Response): Pro
     }
 };
 
-export const getBusinesses = async (req: express.Request, res: express.Response): Promise<void> => {
+export const getBusinesses = async (req: Request, res: Response): Promise<void> => {
     try {
         const businesses = await adminService.getAllBusinesses();
         res.status(200).json(businesses);
@@ -20,7 +21,7 @@ export const getBusinesses = async (req: express.Request, res: express.Response)
     }
 };
 
-export const updateBusinessStatus = async (req: express.Request, res: express.Response): Promise<void> => {
+export const updateBusinessStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { status } = req.body;

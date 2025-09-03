@@ -1,18 +1,20 @@
-import express from 'express';
+
+import express, { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { bookingsService } from '../services/bookingsService';
 
 const router = express.Router();
 
+// If you want to pin apiVersion:
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2024-06-20' });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET as string;
 
-// IMPORTANT: Use express.raw on this route to preserve the raw body for signature verification.
 router.post(
   '/stripe',
+  // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  async (req: express.Request, res: express.Response) => {
+  async (req: Request, res: Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;
       if (!sig || !WEBHOOK_SECRET) {
@@ -20,53 +22,42 @@ router.post(
         return res.status(400).send('Missing Stripe signature or secret');
       }
 
+      // req.body is a Buffer because of express.raw
+      const buf = req.body as Buffer;
+
       let event: Stripe.Event;
       try {
-        event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);
+        event = stripe.webhooks.constructEvent(buf, sig, WEBHOOK_SECRET);
       } catch (err: any) {
-        console.error('[stripe] Signature verification failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+        console.error('[stripe] Signature verification failed:', err?.message);
+        return res.status(400).send(`Webhook Error: ${err?.message ?? 'invalid signature'}`);
       }
 
-      // Handle supported event types
       switch (event.type) {
         case 'payment_intent.succeeded': {
           const pi = event.data.object as Stripe.PaymentIntent;
           const bookingId = pi.metadata?.booking_id;
-          const amountReceived = pi.amount_received;
-          console.log('[stripe] payment_intent.succeeded', { bookingId, amountReceived });
-
-          // Mark booking as paid in DB
-          await bookingsService.markPaid(bookingId, { amount: amountReceived, paymentIntentId: pi.id });
-
+          console.log('[stripe] payment_intent.succeeded', { bookingId, amountReceived: pi.amount_received });
+          // TODO: mark booking as paid
           break;
         }
-
         case 'payment_intent.payment_failed': {
           const pi = event.data.object as Stripe.PaymentIntent;
-          const bookingId = pi.metadata?.booking_id;
-          const lastError = pi.last_payment_error?.message;
-          console.warn('[stripe] payment failed', { bookingId, lastError });
-
-          // Persist failure reason / notify user
-          await bookingsService.markPaymentFailed(bookingId, { reason: lastError ?? 'unknown', paymentIntentId: pi.id });
-
+          console.warn('[stripe] payment failed', {
+            bookingId: pi.metadata?.booking_id,
+            lastError: pi.last_payment_error?.message,
+          });
+          // TODO: mark booking as failed
           break;
         }
-
         case 'charge.refunded': {
           const charge = event.data.object as Stripe.Charge;
-          const bookingId = (charge.metadata && (charge.metadata as any).booking_id) || undefined;
-          console.log('[stripe] charge.refunded', { bookingId, charge.id });
-
-          // Mark booking/refund status
-          await bookingsService.markRefunded(bookingId, { chargeId: charge.id });
-
+          const bookingId = (charge.metadata as any)?.booking_id;
+          console.log('[stripe] charge.refunded', { bookingId, chargeId: charge.id });
+          // TODO: mark booking as refunded
           break;
         }
-
         default: {
-          // Log and ignore unhandled events
           console.log(`[stripe] Unhandled event: ${event.type}`);
           break;
         }

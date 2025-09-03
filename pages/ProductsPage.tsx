@@ -265,7 +265,7 @@ const ProductsPage: React.FC = () => {
                                         </Fragment>
                                     ))
                                 )}
-                            </tbody>
+                              </tbody>
                         </table>
                     </div>
                     {totalPages > 1 && (

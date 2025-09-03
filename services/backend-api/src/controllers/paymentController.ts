@@ -1,7 +1,8 @@
-import express from 'express';
+
+import { Request, Response } from 'express';
 import * as paymentService from '../services/paymentService';
 
-export const create = async (req: express.Request, res: express.Response): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const { serviceId } = req.body;
 

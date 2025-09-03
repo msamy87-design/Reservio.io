@@ -1,4 +1,5 @@
-import express from 'express';
+
+import { Response } from 'express';
 import { AuthenticatedBusinessRequest } from '../middleware/authMiddleware';
 import * as businessService from '../services/businessService';
 import { BookingStatus, ReviewStatus } from '../types/booking';
@@ -6,7 +7,7 @@ import { mockBookings, mockReviews } from '../data/mockData';
 import * as reviewService from '../services/reviewService';
 
 
-export const updateProfile = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
+export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const businessId = req.business?.businessId;
         const { is_listed, public_image_url } = req.body;
@@ -39,7 +40,7 @@ export const updateProfile = async (req: AuthenticatedBusinessRequest, res: expr
     }
 };
 
-export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
+export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { status } = req.body as { status: BookingStatus };
@@ -56,7 +57,7 @@ export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res
     }
 };
 
-export const getReviews = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
+export const getReviews = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         // In a real app, filter reviews for req.business.businessId
         const reviews = await reviewService.getReviewsByBusiness();
@@ -66,7 +67,7 @@ export const getReviews = async (req: AuthenticatedBusinessRequest, res: express
     }
 };
 
-export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
+export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
     try {
         const { reviewId } = req.params;
         const { status } = req.body as { status: ReviewStatus };
