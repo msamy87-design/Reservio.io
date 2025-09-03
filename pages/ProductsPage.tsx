@@ -184,86 +184,87 @@ const ProductsPage: React.FC = () => {
                                 ) : paginatedProducts.length === 0 ? (
                                     <tr><td colSpan={4} className="text-center py-10">No products found.</td></tr>
                                 ) : (
-                                    paginatedProducts.map(p => {
+                                    paginatedProducts.map((p) => {
                                         const isVariable = p.variants && p.variants.length > 0;
                                         const isExpanded = expandedProductIds.has(p.id);
                                         return (
-                                        <Fragment key={p.id}>
-                                            <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-4">
-                                                        {isVariable && (
-                                                          <button onClick={() => toggleRow(p.id)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                                                              <ChevronDownIcon className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                                          </button>
-                                                        )}
-                                                        {p.imageUrl ? (
-                                                            <img src={p.imageUrl} alt={p.name} className="h-12 w-12 rounded-md object-cover flex-shrink-0" />
-                                                        ) : (
-                                                            <div className="h-12 w-12 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 flex-shrink-0">
-                                                                <ArchiveBoxIcon className="h-6 w-6" />
+                                            <React.Fragment key={p.id}>
+                                                <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-4">
+                                                            {isVariable && (
+                                                            <button onClick={() => toggleRow(p.id)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                                                                <ChevronDownIcon className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                            </button>
+                                                            )}
+                                                            {p.imageUrl ? (
+                                                                <img src={p.imageUrl} alt={p.name} className="h-12 w-12 rounded-md object-cover flex-shrink-0" />
+                                                            ) : (
+                                                                <div className="h-12 w-12 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 flex-shrink-0">
+                                                                    <ArchiveBoxIcon className="h-6 w-6" />
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <div className="font-medium text-gray-900 dark:text-white">{p.name}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">{p.description}</div>
                                                             </div>
-                                                        )}
-                                                        <div>
-                                                            <div className="font-medium text-gray-900 dark:text-white">{p.name}</div>
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">{p.description}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">{isVariable ? formatPriceRange(p.variants!) : formatCurrency(p.price)}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className={p.stock_quantity === 0 ? 'text-red-500 font-semibold' : p.stock_quantity <= 10 ? 'text-yellow-500 font-semibold' : ''}>
-                                                        {p.stock_quantity}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button onClick={() => handleOpenModal(p)} className="font-medium text-indigo-600 dark:text-indigo-500 hover:underline">Edit</button>
-                                                </td>
-                                            </tr>
-                                            {isVariable && isExpanded && (
-                                                <tr className="bg-gray-50 dark:bg-gray-900/50">
-                                                    <td colSpan={4} className="p-0">
-                                                        <div className="px-8 py-4">
-                                                          <table className="w-full text-xs">
-                                                              <thead className="text-gray-500 dark:text-gray-400">
-                                                                <tr>
-                                                                    <th className="py-2 text-left w-1/2">Variant</th>
-                                                                    <th className="py-2 text-left">Price</th>
-                                                                    <th className="py-2 text-center">Stock</th>
-                                                                </tr>
-                                                              </thead>
-                                                              <tbody>
-                                                                {p.variants!.map(variant => (
-                                                                <tr key={variant.id} className="border-t border-gray-200 dark:border-gray-700">
-                                                                    <td className="py-2 text-gray-800 dark:text-gray-200">{variant.name}</td>
-                                                                    <td className="py-2 text-gray-600 dark:text-gray-300">{formatCurrency(variant.price)}</td>
-                                                                    <td className="py-2 text-center">
-                                                                        <div className="flex items-center justify-center gap-2" title={
-                                                                            variant.stock_quantity === 0 ? 'Out of stock' :
-                                                                            variant.stock_quantity > 0 && variant.stock_quantity <= 10 ? 'Low stock' : 'In stock'
-                                                                        }>
-                                                                            <span className={`h-2 w-2 rounded-full ${
-                                                                                variant.stock_quantity === 0 ? 'bg-red-500' :
-                                                                                variant.stock_quantity <= 10 ? 'bg-yellow-500' : 'bg-green-500'
-                                                                            }`}></span>
-                                                                            <span className={
-                                                                                variant.stock_quantity === 0 ? 'text-red-500 font-semibold' :
-                                                                                variant.stock_quantity <= 10 ? 'text-yellow-500 font-semibold' : ''
-                                                                            }>
-                                                                                {variant.stock_quantity}
-                                                                            </span>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                                ))}
-                                                              </tbody>
-                                                          </table>
                                                         </div>
                                                     </td>
+                                                    <td className="px-6 py-4">{isVariable ? formatPriceRange(p.variants!) : formatCurrency(p.price)}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={p.stock_quantity === 0 ? 'text-red-500 font-semibold' : p.stock_quantity <= 10 ? 'text-yellow-500 font-semibold' : ''}>
+                                                            {p.stock_quantity}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button onClick={() => handleOpenModal(p)} className="font-medium text-indigo-600 dark:text-indigo-500 hover:underline">Edit</button>
+                                                    </td>
                                                 </tr>
-                                            )}
-                                        </Fragment>
-                                    ))
+                                                {isVariable && isExpanded && (
+                                                    <tr className="bg-gray-50 dark:bg-gray-900/50">
+                                                        <td colSpan={4} className="p-0">
+                                                            <div className="px-8 py-4">
+                                                            <table className="w-full text-xs">
+                                                                <thead className="text-gray-500 dark:text-gray-400">
+                                                                    <tr>
+                                                                        <th className="py-2 text-left w-1/2">Variant</th>
+                                                                        <th className="py-2 text-left">Price</th>
+                                                                        <th className="py-2 text-center">Stock</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {p.variants!.map((variant) => (
+                                                                    <tr key={variant.id} className="border-t border-gray-200 dark:border-gray-700">
+                                                                        <td className="py-2 text-gray-800 dark:text-gray-200">{variant.name}</td>
+                                                                        <td className="py-2 text-gray-600 dark:text-gray-300">{formatCurrency(variant.price)}</td>
+                                                                        <td className="py-2 text-center">
+                                                                            <div className="flex items-center justify-center gap-2" title={
+                                                                                variant.stock_quantity === 0 ? 'Out of stock' :
+                                                                                variant.stock_quantity > 0 && variant.stock_quantity <= 10 ? 'Low stock' : 'In stock'
+                                                                            }>
+                                                                                <span className={`h-2 w-2 rounded-full ${
+                                                                                    variant.stock_quantity === 0 ? 'bg-red-500' :
+                                                                                    variant.stock_quantity <= 10 ? 'bg-yellow-500' : 'bg-green-500'
+                                                                                }`}></span>
+                                                                                <span className={
+                                                                                    variant.stock_quantity === 0 ? 'text-red-500 font-semibold' :
+                                                                                    variant.stock_quantity <= 10 ? 'text-yellow-500 font-semibold' : ''
+                                                                                }>
+                                                                                    {variant.stock_quantity}
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })
                                 )}
                               </tbody>
                         </table>
