@@ -1,5 +1,5 @@
 
-import express from 'express';
+import { Request, Response } from 'express';
 import { AuthenticatedBusinessRequest } from '../middleware/authMiddleware';
 import * as bizService from '../services/bizService';
 import { 
@@ -18,10 +18,10 @@ import {
 import { getAIGrowthInsights } from '../services/aiService';
 
 // Since this is a mock, we'll just send back success/failure
-export const login = (req: express.Request, res: express.Response) => res.json({ message: 'Login mock placeholder' });
-export const signup = (req: express.Request, res: express.Response) => res.json({ message: 'Signup mock placeholder' });
-export const logout = (req: express.Request, res: express.Response) => res.json({ message: 'Logout mock placeholder' });
-export const getMe = (req: AuthenticatedBusinessRequest, res: express.Response) => {
+export const login = (req: Request, res: Response) => res.json({ message: 'Login mock placeholder' });
+export const signup = (req: Request, res: Response) => res.json({ message: 'Signup mock placeholder' });
+export const logout = (req: Request, res: Response) => res.json({ message: 'Logout mock placeholder' });
+export const getMe = (req: AuthenticatedBusinessRequest, res: Response) => {
     // In a real app, you'd fetch user details based on req.business
     const mockUser = {
         id: 'user_default',
@@ -34,7 +34,7 @@ export const getMe = (req: AuthenticatedBusinessRequest, res: express.Response) 
 };
 
 // Generic handler for fetching all items of a certain type
-const getAll = (fetcher: (businessId: string) => Promise<any>) => async (req: AuthenticatedBusinessRequest, res: express.Response) => {
+const getAll = (fetcher: (businessId: string) => Promise<any>) => async (req: AuthenticatedBusinessRequest, res: Response) => {
     try {
         const businessId = req.business!.businessId;
         const items = await fetcher(businessId);
@@ -45,7 +45,7 @@ const getAll = (fetcher: (businessId: string) => Promise<any>) => async (req: Au
 };
 
 // Generic handler for creating an item
-const create = (creator: (businessId: string, data: any) => Promise<any>) => async (req: AuthenticatedBusinessRequest, res: express.Response) => {
+const create = (creator: (businessId: string, data: any) => Promise<any>) => async (req: AuthenticatedBusinessRequest, res: Response) => {
     try {
         const businessId = req.business!.businessId;
         const newItem = await creator(businessId, req.body);
@@ -59,7 +59,7 @@ const create = (creator: (businessId: string, data: any) => Promise<any>) => asy
 };
 
 // Generic handler for updating an item
-const update = (updater: (id: string, data: any) => Promise<any>) => async (req: express.Request, res: express.Response) => {
+const update = (updater: (id: string, data: any) => Promise<any>) => async (req: Request, res: Response) => {
     try {
         const updatedItem = await updater(req.params.id, req.body);
         res.json(updatedItem);
@@ -69,7 +69,7 @@ const update = (updater: (id: string, data: any) => Promise<any>) => async (req:
 };
 
 // Generic handler for deleting an item
-const deleteItem = (deleter: (id: string) => Promise<any>) => async (req: express.Request, res: express.Response) => {
+const deleteItem = (deleter: (id: string) => Promise<any>) => async (req: Request, res: Response) => {
     try {
         await deleter(req.params.id);
         res.status(204).send();
@@ -85,7 +85,7 @@ export const revokeApiKey = deleteItem(bizService.revokeApiKey);
 
 // --- Settings ---
 export const getBusinessSettings = getAll(bizService.getBusinessSettings);
-export const updateBusinessSettings = async (req: AuthenticatedBusinessRequest, res: express.Response) => {
+export const updateBusinessSettings = async (req: AuthenticatedBusinessRequest, res: Response) => {
     try {
         const businessId = req.business!.businessId;
         const updatedSettings = await bizService.updateBusinessSettings(businessId, req.body);
@@ -118,7 +118,7 @@ export const getStaff = getAll(bizService.getStaff);
 export const createStaff = create((_, data: NewStaffData) => bizService.createStaff(data));
 export const updateStaff = update((id, data: NewStaffData) => bizService.updateStaff(id, data));
 export const deleteStaff = deleteItem(bizService.deleteStaff);
-export const updateStaffSchedule = async (req: express.Request, res: express.Response) => {
+export const updateStaffSchedule = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { schedule } = req.body;
@@ -134,7 +134,7 @@ export const getCampaigns = getAll(bizService.getCampaigns);
 export const createCampaign = create((_, data: NewCampaignData) => bizService.createCampaign(data));
 export const updateCampaign = update((id, data: Partial<NewCampaignData>) => bizService.updateCampaign(id, data));
 export const deleteCampaign = deleteItem(bizService.deleteCampaign);
-export const sendCampaign = async (req: express.Request, res: express.Response) => {
+export const sendCampaign = async (req: Request, res: Response) => {
     try {
         const sentCampaign = await bizService.sendCampaign(req.params.id);
         res.json(sentCampaign);
@@ -169,7 +169,7 @@ export const getTransactions = getAll(bizService.getTransactions);
 export const createTransaction = create((_, data: NewTransactionData) => bizService.createTransaction(data));
 
 // --- AI ---
-export const getGrowthInsights = async (req: AuthenticatedBusinessRequest, res: express.Response) => {
+export const getGrowthInsights = async (req: AuthenticatedBusinessRequest, res: Response) => {
     try {
         const businessId = req.business!.businessId;
         const insights = await getAIGrowthInsights(businessId);

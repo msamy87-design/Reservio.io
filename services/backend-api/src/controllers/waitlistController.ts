@@ -1,9 +1,9 @@
 
-import express from 'express';
+import { Request, Response } from 'express';
 import * as waitlistService from '../services/waitlistService';
 import { NewWaitlistEntryData } from '../types/booking';
 
-export const create = async (req: express.Request, res: express.Response): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const data: NewWaitlistEntryData = req.body;
         await waitlistService.createWaitlistEntry(data);

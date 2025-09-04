@@ -1,10 +1,10 @@
 
-import express from 'express';
+import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import * as reviewService from '../services/reviewService';
 import { NewReviewData } from '../types/booking';
 
-export const create = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
+export const create = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {

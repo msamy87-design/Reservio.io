@@ -1,5 +1,3 @@
-
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -17,7 +15,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // FIX: Use __dirname to resolve path to avoid type errors with process.cwd()
       '@': path.resolve(__dirname, 'src'),
     },
   },

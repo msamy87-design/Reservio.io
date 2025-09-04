@@ -1,37 +1,40 @@
-
-
 import Stripe from 'stripe';
-import { mockServices, mockBusinessSettings, mockCustomers } from '../data/mockData';
+import { mockServices, mockBusinessSettings } from '../data/mockData';
 import { PaymentIntentDetails } from '../../../../types';
 import { getNoShowRiskScore } from './aiService';
 
+let stripe: Stripe | null = null;
+
 if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not set in the environment variables.');
+    console.warn("STRIPE_SECRET_KEY is not set in the environment variables. Payment services will be disabled.");
+} else {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string; depositAmount: number; depositReason: string; }> => {
+export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string | null; depositAmount: number; depositReason: string; }> => {
     const service = mockServices.find(s => s.id === details.serviceId);
     if (!service) {
         throw new Error('Service not found.');
     }
     
-    // In a real app, customer would be passed in or looked up
-    const mockCustomerForRisk = { full_name: 'New Customer', email: `new_${Date.now()}@example.com` };
-
-    const riskScore = await getNoShowRiskScore({
-        ...details,
-        customer: mockCustomerForRisk
-    });
-
     const businessSettings = mockBusinessSettings[details.businessId];
     if (!businessSettings) {
         throw new Error('Business settings not found');
     }
 
-    let amount = service.price * 100; // Default to full price in cents
-    let depositAmount = 0;
+    // For this flow, we'll use the passed-in customer details for guests,
+    // or a placeholder for logged-in users (in a real app, you'd fetch their history).
+    const customerForRisk = details.customer || { full_name: 'Existing Customer', email: 'logged-in-user@example.com' };
+
+    const riskScore = await getNoShowRiskScore({
+        serviceId: details.serviceId,
+        staffId: details.staffId,
+        startTime: details.startTime,
+        customer: customerForRisk,
+    });
+
+    let amount = 0; // in cents
+    let depositAmount = 0; // in dollars
     let depositReason = '';
 
     const standardDepositSettings = businessSettings.payment_settings;
@@ -47,45 +50,45 @@ export const createPaymentIntent = async (details: PaymentIntentDetails): Promis
         // Standard fixed deposit
         amount = standardDepositSettings.deposit_value * 100;
         depositAmount = standardDepositSettings.deposit_value;
+        depositReason = `A deposit of $${depositAmount.toFixed(2)} is required to secure your booking.`;
     } else if (standardDepositSettings.deposit_type === 'percentage' && standardDepositSettings.deposit_value > 0) {
         // Standard percentage deposit
-        amount = Math.round(amount * (standardDepositSettings.deposit_value / 100));
+        const totalAmount = service.price * 100;
+        amount = Math.round(totalAmount * (standardDepositSettings.deposit_value / 100));
         depositAmount = amount / 100;
+        depositReason = `A ${standardDepositSettings.deposit_value}% deposit is required to secure your booking.`;
     }
 
-    if (amount < 50) { // Stripe's minimum charge is $0.50
-        console.warn(`Calculated amount is ${amount} cents, which is below Stripe's minimum. The payment will likely fail.`);
-        // For this mock, we'll proceed, but in a real app you might prevent this.
-        if (amount === 0) {
-             return { 
-                clientSecret: '', // No payment needed
-                depositAmount: 0,
-                depositReason: ''
-            };
-        }
+    // If no Stripe, or amount is too small, no payment can be processed.
+    if (!stripe || amount < 50) { // Stripe's minimum charge is $0.50.
+        return {
+            clientSecret: null,
+            depositAmount: 0,
+            depositReason: ''
+        };
     }
+    
+    // Proceed with creating Stripe Payment Intent
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount),
+            currency: service.currency.toLowerCase(),
+            automatic_payment_methods: { enabled: true },
+            metadata: {
+                businessId: details.businessId,
+                serviceId: details.serviceId,
+                staffId: details.staffId,
+                startTime: details.startTime,
+            }
+        });
 
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: 'usd',
-        automatic_payment_methods: {
-            enabled: true,
-        },
-        metadata: {
-            serviceId: service.id,
-            serviceName: service.name,
-            businessId: details.businessId,
-            riskScore: riskScore
-        }
-    });
-
-    if (!paymentIntent.client_secret) {
-        throw new Error('Failed to create payment intent.');
+        return {
+            clientSecret: paymentIntent.client_secret,
+            depositAmount,
+            depositReason,
+        };
+    } catch (error) {
+        console.error("Error creating Stripe Payment Intent:", error);
+        throw new Error("Could not initiate payment process.");
     }
-
-    return { 
-        clientSecret: paymentIntent.client_secret,
-        depositAmount,
-        depositReason
-    };
 };

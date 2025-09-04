@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import * as bizController from '../controllers/bizController';
 import { protectBusiness } from '../middleware/authMiddleware';
@@ -10,8 +11,8 @@ router.use(protectBusiness);
 // --- Auth ---
 router.post('/logout', bizController.logout);
 router.get('/me', bizController.getMe);
-router.post('/biz/login', bizController.login);
-router.post('/biz/signup', bizController.signup);
+router.post('/login', bizController.login);
+router.post('/signup', bizController.signup);
 
 
 // --- API Keys ---

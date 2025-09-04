@@ -351,6 +351,10 @@ export interface PaymentIntentDetails {
     businessId: string;
     staffId: string;
     startTime: string;
+    customer?: { // For guest checkout risk assessment
+        full_name: string;
+        email: string;
+    };
 }
 
 export interface WaitlistEntry {

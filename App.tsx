@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -32,6 +31,7 @@ import ReviewsPage from './pages/ReviewsPage';
 import ReportsPage from './pages/ReportsPage';
 import ApiKeysPage from './pages/ApiKeysPage';
 import SettingsPage from './pages/SettingsPage';
+import WaitlistPage from './pages/WaitlistPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 
@@ -90,6 +90,7 @@ const App: React.FC = () => {
                           <Route path="marketing" element={<MarketingPage />} />
                           <Route path="reviews" element={<ReviewsPage />} />
                           <Route path="reports" element={<ReportsPage />} />
+                          <Route path="waitlist" element={<WaitlistPage />} />
                           <Route path="developer/api-keys" element={<ApiKeysPage />} />
                           <Route path="settings" element={<SettingsPage />} />
                           <Route path="*" element={<Navigate to="dashboard" replace />} />

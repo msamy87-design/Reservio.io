@@ -27,6 +27,7 @@ import {
     Transaction,
     NewTransactionData,
     AIGrowthInsight,
+    WaitlistEntry,
 } from '../types';
 
 // Helper to handle API responses
@@ -226,6 +227,11 @@ export const createTransaction = (data: NewTransactionData): Promise<{transactio
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
 }).then(handleResponse);
+
+// --- Waitlist ---
+export const fetchWaitlist = (): Promise<WaitlistEntry[]> => fetch('/api/biz/waitlist', { headers: getAuthHeaders() }).then(handleResponse);
+export const deleteWaitlistEntry = (id: string): Promise<void> => fetch(`/api/biz/waitlist/${id}`, { method: 'DELETE', headers: getAuthHeaders() }).then(handleResponse);
+
 
 // --- AI ---
 export const fetchAIGrowthInsights = (): Promise<AIGrowthInsight[]> => fetch('/api/biz/me/growth-insights', { headers: getAuthHeaders() }).then(handleResponse);

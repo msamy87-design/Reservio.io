@@ -1,6 +1,6 @@
 
 
-import express, { Router } from 'express';
+import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { bookingsService } from '../services/bookingsService';
 
@@ -16,7 +16,7 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  async (req: express.Request, res: express.Response) => {
+  async (req: Request, res: Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;
       if (!sig || !WEBHOOK_SECRET) {

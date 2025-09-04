@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { DashboardIcon, KeyIcon, SettingsIcon, BusinessIcon, UsersIcon, CalendarIcon, TagIcon, BriefcaseIcon, ChartBarIcon, UserCircleIcon, ArrowRightOnRectangleIcon, MegaphoneIcon, StarIcon, ArchiveBoxIcon, SunIcon, MoonIcon, ComputerDesktopIcon, CheckIcon, ShoppingCartIcon } from './Icons';
+import { DashboardIcon, KeyIcon, SettingsIcon, BusinessIcon, UsersIcon, CalendarIcon, TagIcon, BriefcaseIcon, ChartBarIcon, UserCircleIcon, ArrowRightOnRectangleIcon, MegaphoneIcon, StarIcon, ArchiveBoxIcon, SunIcon, MoonIcon, ComputerDesktopIcon, CheckIcon, ShoppingCartIcon, ClipboardDocumentListIcon } from './Icons';
 import ToastContainer from './ToastContainer';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -38,6 +38,7 @@ const navConfig: { to: string; icon: React.FC<any>; label: string; roles: Staff[
     { to: '/biz/inventory', icon: ArchiveBoxIcon, label: 'Inventory', roles: ['Owner', 'Manager'] },
     { to: '/biz/marketing', icon: MegaphoneIcon, label: 'Marketing', roles: ['Owner', 'Manager'] },
     { to: '/biz/reviews', icon: StarIcon, label: 'Reviews', roles: ['Owner', 'Manager'] },
+    { to: '/biz/waitlist', icon: ClipboardDocumentListIcon, label: 'Waitlist', roles: ['Owner', 'Manager'] },
     { to: '/biz/reports', icon: ChartBarIcon, label: 'Reports', roles: ['Owner', 'Manager'] },
 ];
 

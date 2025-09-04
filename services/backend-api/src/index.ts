@@ -1,7 +1,5 @@
 
-// FIX: Switch to default express import to resolve type conflicts.
-import express from 'express';
-// FIX: Remove ambiguous Request, Response imports to prevent type conflicts
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -31,7 +29,6 @@ const limiter = rateLimit({
 	standardHeaders: true,
 	legacyHeaders: false,
 });
-// FIX: Removed unnecessary type assertion
 app.use(limiter);
 
 // --- Core Middleware ---
@@ -39,12 +36,11 @@ const corsOptions = {
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
 };
-// FIX: Removed unnecessary type assertion
 app.use(cors(corsOptions));
 
 // --- Routes ---
-// FIX: Use qualified express types to resolve type errors.
-app.get('/api', (req: express.Request, res: express.Response) => {
+// FIX: Use Request and Response types from express to fix 'send' property not found error.
+app.get('/api', (req: Request, res: Response) => {
   res.send('Reservio API is running!');
 });
 
@@ -52,9 +48,7 @@ app.get('/api', (req: express.Request, res: express.Response) => {
 app.use('/api/webhooks', stripeWebhooksRouter);
 
 // JSON/body parsers for normal routes
-// FIX: Removed unnecessary type assertion
 app.use(express.json({ limit: '10mb' }));
-// FIX: Removed unnecessary type assertion
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/businesses', businessesRouter);

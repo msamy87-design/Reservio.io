@@ -25,6 +25,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     const [selectedStaffId, setSelectedStaffId] = useState(initialStaffId || 'any');
     const [availability, setAvailability] = useState<Record<string, string[]>>({});
     const [loadingAvailability, setLoadingAvailability] = useState(true);
+    const [isCheckingRisk, setIsCheckingRisk] = useState(false);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [depositAmount, setDepositAmount] = useState<number>(0);
@@ -68,36 +69,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
         }
     }, [isOpen, step, fetchAvailability]);
     
-    const staffForService = business.staff.filter(s =>
-        (s as any).services?.includes(service.id) || 
-        mockServices.find(serv => serv.id === service.id)?.staffIds.includes(s.id) // Fallback for mock structure
-    );
+    const isCustomerFormValid = () => customerDetails.fullName.trim() !== '' && customerDetails.email.trim() !== '';
 
-    const handleTimeSelect = async (time: string, staffId: string) => {
-        setSelectedTime(time);
-        setSelectedStaffId(staffId);
-        
-        const startTime = dateFns.parse(time, 'HH:mm', selectedDate).toISOString();
-
-        try {
-            const { clientSecret, depositAmount, depositReason } = await createPaymentIntent({ serviceId: service.id, businessId: business.id, staffId, startTime });
-            if (clientSecret) { // Deposit required
-                setClientSecret(clientSecret);
-                setDepositAmount(depositAmount);
-                setDepositReason(depositReason);
-                setStep(2);
-            } else { // No deposit needed, book directly
-                await handleDirectBooking(staffId, startTime);
-            }
-        } catch (error) {
-            addToast('Could not proceed with booking. Please try another time.', 'error');
-        }
-    };
-    
     const handleDirectBooking = async (staffId: string, startTime: string) => {
         if (!isCustomerFormValid()) {
             addToast("Please fill in your name and email.", "error");
-            setStep(2); // Go to details form
+            setStep(2); // Go to details form if somehow bypassed
             return;
         }
         
@@ -120,12 +97,53 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
             addToast('Failed to create booking.', 'error');
         }
     };
+
+    const handleTimeSelect = async (time: string, staffId: string) => {
+        setSelectedTime(time);
+        setSelectedStaffId(staffId);
+        
+        if (!currentCustomer && !isCustomerFormValid()) {
+            addToast("Please fill in your name and email first.", "info");
+            setStep(2); 
+            return;
+        }
+
+        setIsCheckingRisk(true);
+        const startTime = dateFns.parse(time, 'HH:mm', selectedDate).toISOString();
+
+        try {
+            const customerPayload = currentCustomer ? undefined : {
+                full_name: customerDetails.fullName,
+                email: customerDetails.email,
+            };
+
+            const { clientSecret, depositAmount, depositReason } = await createPaymentIntent({ 
+                serviceId: service.id, 
+                businessId: business.id, 
+                staffId, 
+                startTime,
+                customer: customerPayload
+            });
+
+            setIsCheckingRisk(false);
+
+            if (clientSecret) { // Deposit required
+                setClientSecret(clientSecret);
+                setDepositAmount(depositAmount);
+                setDepositReason(depositReason);
+                setStep(2);
+            } else { // No deposit needed, book directly
+                await handleDirectBooking(staffId, startTime);
+            }
+        } catch (error) {
+            setIsCheckingRisk(false);
+            addToast('Could not proceed with booking. Please try another time.', 'error');
+        }
+    };
     
     const handleBookingSuccess = () => {
         onClose();
     };
-
-    const isCustomerFormValid = () => customerDetails.fullName.trim() !== '' && customerDetails.email.trim() !== '';
 
     const handleCustomerDetailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCustomerDetails({ ...customerDetails, [e.target.name]: e.target.value });
@@ -143,7 +161,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
         <>
         <Modal isOpen={isOpen} onClose={onClose} title={`Book: ${service.name}`}>
             {step === 1 && (
-                <div>
+                <div className="relative">
+                    {isCheckingRisk && (
+                        <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/70 z-10 flex flex-col items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                            <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">Checking availability...</p>
+                        </div>
+                    )}
                     {/* Date and Staff Selector */}
                     <div className="flex justify-between items-center mb-4">
                         <button onClick={() => setSelectedDate(d => dateFns.addDays(d, -1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronLeftIcon className="h-5 w-5"/></button>
@@ -154,6 +178,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                         <option value="any">Any Available</option>
                         {renderableStaff.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
                     </select>
+
+                    {!currentCustomer && (
+                         <div className="space-y-2 mb-4 p-3 border rounded-md dark:border-gray-600">
+                            <h3 className="text-sm font-semibold">Your Details</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input type="text" name="fullName" placeholder="Full Name" value={customerDetails.fullName} onChange={handleCustomerDetailChange} className="w-full text-sm p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                                <input type="email" name="email" placeholder="Email" value={customerDetails.email} onChange={handleCustomerDetailChange} className="w-full text-sm p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Availability */}
                     <div className="max-h-64 overflow-y-auto">

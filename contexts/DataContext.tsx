@@ -1,9 +1,7 @@
-
-
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import * as api from '../services/api';
-import { Booking, Customer, Service, Staff, NewBookingData, NewCustomerData, NewServiceData, NewStaffData, StaffSchedule, MarketingCampaign, CustomerAudience, NewCampaignData, NewAudienceData, TimeOff, NewTimeOffData, Review, ReviewStatus, BookingStatus, Product, NewProductData, Transaction, NewTransactionData, BulkImportResult } from '../types';
+import { Booking, Customer, Service, Staff, NewBookingData, NewCustomerData, NewServiceData, NewStaffData, StaffSchedule, MarketingCampaign, CustomerAudience, NewCampaignData, NewAudienceData, TimeOff, NewTimeOffData, Review, ReviewStatus, BookingStatus, Product, NewProductData, Transaction, NewTransactionData, BulkImportResult, WaitlistEntry } from '../types';
 
 interface DataState {
   bookings: Booking[];
@@ -16,6 +14,7 @@ interface DataState {
   reviews: Review[];
   products: Product[];
   transactions: Transaction[];
+  waitlist: WaitlistEntry[];
 }
 
 interface DataContextType extends DataState {
@@ -49,6 +48,7 @@ interface DataContextType extends DataState {
   deleteProduct: (id: string) => Promise<void>;
   createProductsBulk: (data: NewProductData[]) => Promise<BulkImportResult | void>;
   createTransaction: (data: NewTransactionData) => Promise<Transaction | void>;
+  deleteWaitlistEntry: (id: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -67,6 +67,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     reviews: [],
     products: [],
     transactions: [],
+    waitlist: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -76,7 +77,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
-      const [bookings, customers, services, staff, campaigns, audiences, timeOff, reviews, products, transactions] = await Promise.all([
+      const [bookings, customers, services, staff, campaigns, audiences, timeOff, reviews, products, transactions, waitlist] = await Promise.all([
         api.fetchBookings(),
         api.fetchCustomers(),
         api.fetchServices(),
@@ -87,9 +88,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         api.fetchReviews(),
         api.fetchProducts(),
         api.fetchTransactions(),
+        api.fetchWaitlist(),
       ]);
       const sorted = sortBookings(bookings);
-      setState({ bookings: sorted, customers, services, staff, campaigns, audiences, timeOff, reviews, products, transactions });
+      setState({ bookings: sorted, customers, services, staff, campaigns, audiences, timeOff, reviews, products, transactions, waitlist });
     } catch (e) {
       setError(e as Error);
       addToast('Failed to load business data.', 'error');
@@ -309,8 +311,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateAudience: async (id: string, data: NewAudienceData) => {
         try {
             const updatedAudience = await api.updateAudience(id, data);
-            const audiences = await api.fetchAudiences(); // Refetch to get updated counts
-            setState(s => ({...s, audiences }));
+            setState(s => ({...s, audiences: s.audiences.map(a => a.id === id ? updatedAudience : a)}));
             addToast('Audience updated successfully.', 'success');
             return updatedAudience;
         } catch (e) {
@@ -349,10 +350,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const updatedReview = await api.updateReviewStatus(id, status);
             setState(s => ({...s, reviews: s.reviews.map(r => r.id === id ? updatedReview : r)}));
-            // Refetch services and staff to get updated ratings
-            const [services, staff] = await Promise.all([api.fetchServices(), api.fetchStaff()]);
-            setState(s => ({...s, services, staff}));
-            addToast(`Review status updated to ${status}.`, 'success');
+            addToast('Review status updated.', 'success');
             return updatedReview;
         } catch (e) {
             addToast('Failed to update review status.', 'error'); throw e;
@@ -366,17 +364,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return newProduct;
         } catch (e) {
             addToast('Failed to create product.', 'error'); throw e;
-        }
-    },
-    createProductsBulk: async (data: NewProductData[]) => {
-        try {
-            const result = await api.createProductsBulk(data);
-            setState(s => ({ ...s, products: [...s.products, ...result.createdProducts] }));
-            addToast(`${result.successCount} products imported successfully.`, 'success');
-            return result;
-        } catch (e) {
-            addToast('Bulk product import failed.', 'error');
-            throw e;
         }
     },
     updateProduct: async (id: string, data: NewProductData) => {
@@ -398,28 +385,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             addToast('Failed to delete product.', 'error'); throw e;
         }
     },
+    createProductsBulk: async (data: NewProductData[]) => {
+        try {
+            const result = await api.createProductsBulk(data);
+            setState(s => ({ ...s, products: [...s.products, ...result.createdProducts] }));
+            addToast(`${result.successCount} products imported successfully. ${result.errorCount > 0 ? `${result.errorCount} failed.` : ''}`, 'success');
+            return result;
+        } catch (e) {
+            addToast('Bulk import failed.', 'error'); throw e;
+        }
+    },
     createTransaction: async (data: NewTransactionData) => {
         try {
             const { transaction, updatedProducts } = await api.createTransaction(data);
             setState(s => ({
                 ...s, 
-                transactions: [transaction, ...s.transactions],
-                products: s.products.map(p => updatedProducts.find(up => up.id === p.id) || p),
-                bookings: data.booking_id ? s.bookings.map(b => b.id === data.booking_id ? { ...b, transaction_id: transaction.id } : b) : s.bookings,
+                transactions: [...s.transactions, transaction],
+                products: s.products.map(p => updatedProducts.find(up => up.id === p.id) || p)
             }));
             addToast('Transaction recorded successfully.', 'success');
             return transaction;
         } catch (e) {
             addToast('Failed to record transaction.', 'error'); throw e;
         }
-    }
+    },
+    deleteWaitlistEntry: async (id: string) => {
+        try {
+            await api.deleteWaitlistEntry(id);
+            setState(s => ({ ...s, waitlist: s.waitlist.filter(entry => entry.id !== id) }));
+            addToast('Waitlist entry removed.', 'success');
+        } catch (e) {
+            addToast('Failed to remove waitlist entry.', 'error'); throw e;
+        }
+    },
   };
 
-  return (
-    <DataContext.Provider value={contextValue as DataContextType}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={contextValue}>{children}</DataContext.Provider>;
 };
 
 export const useData = (): DataContextType => {

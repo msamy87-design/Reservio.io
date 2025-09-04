@@ -3,7 +3,7 @@
 import React from 'react';
 import Modal from './Modal';
 // FIX: Import DayOfWeek to fix typing issues with mapping over days.
-import { Staff, StaffSchedule, DayOfWeek } from '../types';
+import { Staff, DayOfWeek } from '../types';
 
 interface ViewScheduleModalProps {
   isOpen: boolean;
