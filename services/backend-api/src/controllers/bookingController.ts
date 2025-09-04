@@ -1,10 +1,6 @@
 
-
-
-
-
-// FIX: Use named import for Response type.
-import { Response } from 'express';
+// FIX: Use named import for Request and Response types.
+import { Request, Response } from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';

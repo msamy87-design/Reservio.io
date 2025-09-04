@@ -1,10 +1,12 @@
 
-
-export interface CustomerUser {
+// This represents the user data that is safe to send to the client.
+export interface PublicCustomerUser {
     id: string;
     full_name: string;
     email: string;
-    passwordHash: string; // This is never sent to the client
 }
 
-export type PublicCustomerUser = Omit<CustomerUser, 'passwordHash'>;
+// This represents the full user data, including sensitive info.
+export interface CustomerUser extends PublicCustomerUser {
+    passwordHash: string;
+}

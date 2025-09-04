@@ -1,19 +1,10 @@
-
-
-
-
-
-// FIX: Use named import for Response type.
 import { Response } from 'express';
-import * as customerService from '../services/customerService';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
+import * as customerService from '../services/customerService';
 
-
-// FIX: Use named Response type to resolve type errors.
 export const getMyBookings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
-
         if (!customerId) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
@@ -24,6 +15,6 @@ export const getMyBookings = async (req: AuthenticatedRequest, res: Response): P
 
     } catch (error) {
         console.error('Error fetching customer bookings:', error);
-        res.status(500).json({ message: 'An error occurred while fetching bookings.' });
+        res.status(500).json({ message: 'An error occurred while fetching your bookings.' });
     }
 };

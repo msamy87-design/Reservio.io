@@ -1,7 +1,5 @@
 
-
-
-
+// FIX: Ensure named imports for Request and Response types are used consistently.
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';

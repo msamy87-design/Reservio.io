@@ -1,8 +1,10 @@
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchBusinessSettings, updateBusinessSettings } from '../services/api';
-import { BusinessSettings, DaySchedule, Currency, BusinessHours } from '../types';
+// FIX: Import DayOfWeek to fix typing issues with mapping over days.
+import { BusinessSettings, DaySchedule, Currency, BusinessHours, DayOfWeek } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { ArrowUpTrayIcon } from '../components/Icons';
 
@@ -23,7 +25,8 @@ const SettingsPage: React.FC = () => {
   const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
   const { addToast } = useToast();
   
-  const daysOfWeek: (keyof BusinessHours)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  // FIX: Use the specific DayOfWeek type to ensure type safety in loops.
+  const daysOfWeek: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const currencies: Currency[] = ['USD', 'EUR', 'GBP'];
 
   const loadSettings = useCallback(async () => {

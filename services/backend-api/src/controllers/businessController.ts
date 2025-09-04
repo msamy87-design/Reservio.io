@@ -1,9 +1,5 @@
 
-
-
-
-
-
+// FIX: Use named imports for Request and Response types from express.
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';

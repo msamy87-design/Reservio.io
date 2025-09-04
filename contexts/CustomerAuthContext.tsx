@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as customerApi from '../services/customerApi';
 import { PublicCustomerUser } from '../types';
@@ -50,7 +49,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
       setCurrentCustomer(user);
       setCustomerToken(token);
-      addToast('Welcome back!', 'success');
+      addToast('Login successful!', 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
       addToast(message, 'error');

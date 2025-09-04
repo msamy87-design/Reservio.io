@@ -1,6 +1,4 @@
-
-
-import { PublicCustomerUser, Booking, NewReviewData, Review } from '../types';
+import { PublicCustomerUser, NewPublicBookingData, Booking } from '../types';
 import { API_BASE_URL } from '../utils/env';
 
 const handleResponse = async (response: Response) => {
@@ -10,6 +8,11 @@ const handleResponse = async (response: Response) => {
     }
     return data;
 };
+
+const getAuthHeaders = (token: string) => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+});
 
 export const customerLogin = async (email: string, password: string): Promise<{ user: PublicCustomerUser, token: string }> => {
     const response = await fetch(`${API_BASE_URL}/auth/customer/login`, {
@@ -29,29 +32,26 @@ export const customerSignup = async (full_name: string, email: string, password:
     return handleResponse(response);
 };
 
-export const getMyBookings = async (token: string): Promise<Booking[]> => {
+export const fetchMyBookings = async (token: string): Promise<Booking[]> => {
     const response = await fetch(`${API_BASE_URL}/customer/me/bookings`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(token),
     });
     return handleResponse(response);
 };
 
 export const cancelMyBooking = async (bookingId: string, token: string): Promise<Booking> => {
-    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
+     const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return handleResponse(response);
-};
-
-export const submitReview = async (reviewData: NewReviewData, token: string): Promise<Review> => {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify(reviewData),
+        headers: getAuthHeaders(token),
     });
     return handleResponse(response);
 }
+
+export const submitReview = async (data: { booking_id: string, rating: number, comment: string }, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/reviews`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+};

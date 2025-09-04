@@ -1,7 +1,7 @@
-
 import React from 'react';
 import Modal from './Modal';
-import { Staff, StaffSchedule } from '../types';
+// FIX: Import DayOfWeek to fix typing issues with mapping over days.
+import { Staff, StaffSchedule, DayOfWeek } from '../types';
 
 interface ViewScheduleModalProps {
   isOpen: boolean;
@@ -21,7 +21,8 @@ const formatTime = (time: string): string => {
 const ViewScheduleModal: React.FC<ViewScheduleModalProps> = ({ isOpen, onClose, staff }) => {
   if (!isOpen) return null;
 
-  const daysOfWeek: (keyof StaffSchedule)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  // FIX: Use the specific DayOfWeek type to ensure type safety in loops.
+  const daysOfWeek: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Schedule for ${staff.full_name}`}>
