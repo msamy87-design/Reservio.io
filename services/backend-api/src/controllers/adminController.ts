@@ -1,6 +1,7 @@
 // FIX: Use default import for express to avoid type conflicts.
 import express from 'express';
 import * as adminService from '../services/adminService';
+// FIX: Correctly import shared types to resolve module error.
 import { BusinessVerificationStatus } from '../../../../types';
 
 // FIX: Use qualified express types to resolve type errors.

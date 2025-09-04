@@ -1,6 +1,10 @@
 
 import { mockBookings, mockReviews, mockServices, mockStaff } from '../data/mockData';
-import { Booking, BookingStatus, NewReviewData, Review, ReviewStatus } from '../types/booking';
+// FIX: Correctly import shared types to resolve module errors.
+import { Booking, BookingStatus, Review, ReviewStatus } from '../../../../types';
+import { NewReviewData } from '../types/booking';
+// FIX: Correctly import aiService to resolve module error.
+import { findAndNotifyWaitlistMatches } from './aiService';
 
 // Helper to update average ratings for services and staff
 const updateAggregateRatings = (serviceId: string, staffId: string) => {
@@ -85,6 +89,11 @@ export const handleBookingCompletion = async (booking: Booking, status: BookingS
 
     if (status === 'completed' && originalStatus !== 'completed') {
        // Future logic for review requests could go here, but for now, it's user-initiated.
+    }
+
+    if (status === 'cancelled' && originalStatus !== 'cancelled') {
+        // Trigger waitlist matching (non-blocking)
+        findAndNotifyWaitlistMatches(mockBookings[index]);
     }
     
     return mockBookings[index];

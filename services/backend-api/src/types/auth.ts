@@ -1,5 +1,6 @@
 
 import { PublicCustomerUser } from "./customer";
+// FIX: Correctly import AdminUser type from shared types.
 import { AdminUser } from "../../../../types";
 
 export interface CustomerLoginRequest {

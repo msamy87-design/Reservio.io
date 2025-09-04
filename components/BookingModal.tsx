@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Modal from './Modal';
-import { PublicBusinessProfile, PublicService, PublicStaff, NewPublicBookingData } from '../types';
+import { PublicBusinessProfile, PublicService, PublicStaff, NewPublicBookingData, PaymentIntentDetails } from '../types';
 import { getAvailability, createPaymentIntent } from '../services/marketplaceApi';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
-import { ChevronLeftIcon, CheckIcon, CreditCardIcon, CalendarDaysIcon, ClockIcon, UserCircleIcon } from './Icons';
+import { ChevronLeftIcon, CheckIcon, CreditCardIcon, CalendarDaysIcon, ClockIcon, UserCircleIcon, ShieldCheckIcon } from './Icons';
 import * as dateFns from 'date-fns';
 import { useToast } from '../contexts/ToastContext';
 import CheckoutForm from './CheckoutForm';
+import WaitlistModal from './WaitlistModal';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -33,6 +34,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     
     const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
     const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [depositInfo, setDepositInfo] = useState({ amount: 0, reason: '' });
+
+    const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+
 
     useEffect(() => {
         if (currentCustomer) {
@@ -105,10 +110,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     
     useEffect(() => {
         const fetchPaymentIntent = async () => {
-            if (step === 'payment' && !clientSecret) {
-                try {
-                    const { clientSecret } = await createPaymentIntent(service.id);
+            if (step === 'payment' && !clientSecret && selectedStaff && selectedTime) {
+                 try {
+                    const paymentDetails: PaymentIntentDetails = {
+                        businessId: business.id,
+                        serviceId: service.id,
+                        staffId: selectedStaff.id,
+                        startTime: new Date(`${dateFns.format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}`).toISOString(),
+                    };
+                    const { clientSecret, depositAmount, depositReason } = await createPaymentIntent(paymentDetails);
                     setClientSecret(clientSecret);
+                    setDepositInfo({ amount: depositAmount, reason: depositReason });
                 } catch (error) {
                     addToast('Could not initialize payment.', 'error');
                     setStep('details'); // Go back
@@ -116,7 +128,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
             }
         };
         fetchPaymentIntent();
-    }, [step, clientSecret, service.id, addToast]);
+    }, [step, clientSecret, service.id, addToast, business.id, selectedStaff, selectedTime, selectedDate]);
 
     const handlePrevStep = () => {
         if (step === 'dateTime') {
@@ -198,7 +210,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                         </div>
                         {/* Time Picker */}
                         <div className="max-h-48 overflow-y-auto grid grid-cols-3 gap-2">
-                            {isLoadingTimes ? <p>Loading times...</p> : Object.keys(availableTimes).length === 0 ? <p className="col-span-3 text-center text-sm text-gray-500">No available times.</p> : Object.keys(availableTimes).sort().map(timeSlot => (
+                            {isLoadingTimes ? <p>Loading times...</p> : Object.keys(availableTimes).length === 0 ? (
+                                <div className="col-span-3 text-center text-sm text-gray-500 p-4">
+                                    <p>No available times for this day.</p>
+                                    <button onClick={() => setIsWaitlistModalOpen(true)} className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                                        Join Waitlist
+                                    </button>
+                                </div>
+                            ) : Object.keys(availableTimes).sort().map(timeSlot => (
                                 <button key={timeSlot} onClick={() => handleTimeSelect(timeSlot)} className={`p-2 rounded-md text-sm ${selectedTime === timeSlot ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
                                     {timeSlot}
                                 </button>
@@ -221,6 +240,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                 return (
                     <div>
                         <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Payment Details</h3>
+                        {depositInfo.amount > 0 && (
+                            <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/40 rounded-lg text-center">
+                                <ShieldCheckIcon className="h-8 w-8 text-indigo-500 mx-auto mb-2"/>
+                                <p className="text-sm text-indigo-800 dark:text-indigo-200">{depositInfo.reason}</p>
+                                <p className="text-sm font-bold text-indigo-800 dark:text-indigo-200">A fully refundable deposit of ${depositInfo.amount.toFixed(2)} is required.</p>
+                            </div>
+                        )}
                         {clientSecret ? (
                             <CheckoutForm 
                                 clientSecret={clientSecret}
@@ -258,38 +284,47 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
         (step === 'details' && (!customerDetails.name || !customerDetails.email || !customerDetails.phone));
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="">
-            <div className="p-2">
-                {/* Header */}
-                <div className="mb-4 pb-4 border-b dark:border-gray-600">
-                    <h2 className="text-xl font-bold">{service.name}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{business.name}</p>
-                    <div className="mt-2 flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2"><CalendarDaysIcon className="h-4 w-4" /><span>{selectedDate ? dateFns.format(selectedDate, 'EEE, MMM d') : '...'}</span></div>
-                        <div className="flex items-center gap-2"><ClockIcon className="h-4 w-4" /><span>{selectedTime || '...'}</span></div>
-                        <div className="flex items-center gap-2"><UserCircleIcon className="h-4 w-4" /><span>{selectedStaff?.full_name || (selectedStaffId === 'any' ? 'Any Available' : '...')}</span></div>
-                        <div className="font-bold text-lg">${service.price.toFixed(2)}</div>
+        <>
+            <Modal isOpen={isOpen} onClose={onClose} title="">
+                <div className="p-2">
+                    {/* Header */}
+                    <div className="mb-4 pb-4 border-b dark:border-gray-600">
+                        <h2 className="text-xl font-bold">{service.name}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{business.name}</p>
+                        <div className="mt-2 flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2"><CalendarDaysIcon className="h-4 w-4" /><span>{selectedDate ? dateFns.format(selectedDate, 'EEE, MMM d') : '...'}</span></div>
+                            <div className="flex items-center gap-2"><ClockIcon className="h-4 w-4" /><span>{selectedTime || '...'}</span></div>
+                            <div className="flex items-center gap-2"><UserCircleIcon className="h-4 w-4" /><span>{selectedStaff?.full_name || (selectedStaffId === 'any' ? 'Any Available' : '...')}</span></div>
+                            <div className="font-bold text-lg">${service.price.toFixed(2)}</div>
+                        </div>
                     </div>
-                </div>
-                
-                {/* Step Content */}
-                <div className="min-h-[250px]">
-                    {renderStep()}
-                </div>
+                    
+                    {/* Step Content */}
+                    <div className="min-h-[250px]">
+                        {renderStep()}
+                    </div>
 
-                {/* Footer */}
-                {step !== 'confirmation' && (
-                    <div className="mt-6 flex justify-between items-center">
-                        <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && (business.staff.length <= 1 || !!initialStaffId)) } className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
-                            Back
-                        </button>
-                        <button onClick={handleNextStep} disabled={isNextDisabled} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800">
-                            Next
-                        </button>
-                    </div>
-                )}
-            </div>
-        </Modal>
+                    {/* Footer */}
+                    {step !== 'confirmation' && (
+                        <div className="mt-6 flex justify-between items-center">
+                            <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && (business.staff.length <= 1 || !!initialStaffId)) } className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
+                                Back
+                            </button>
+                            <button onClick={handleNextStep} disabled={isNextDisabled} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800">
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </Modal>
+            <WaitlistModal 
+                isOpen={isWaitlistModalOpen}
+                onClose={() => setIsWaitlistModalOpen(false)}
+                businessId={business.id}
+                serviceId={service.id}
+                date={selectedDate}
+            />
+        </>
     );
 };
 

@@ -1,6 +1,7 @@
-// FIX: Use default import for express to resolve type conflicts.
+// FIX: Use default import for express to avoid type conflicts.
 import express from 'express';
 import { PublicCustomerUser } from '../types/customer';
+// FIX: Correctly import AdminUser type to resolve module error.
 import { AdminUser } from '../../../../types';
 
 // In a real app, you would use a library like jsonwebtoken to verify the token

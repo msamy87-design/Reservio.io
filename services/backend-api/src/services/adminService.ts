@@ -1,4 +1,4 @@
-
+// FIX: Correctly import shared types to resolve module error.
 import { PlatformStats, BusinessForAdmin, BusinessVerificationStatus } from '../../../../types';
 import { mockBusinesses, mockCustomers, mockBookings, mockServices } from '../data/mockData';
 

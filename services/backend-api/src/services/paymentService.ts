@@ -1,7 +1,9 @@
-
 import Stripe from 'stripe';
-import { mockServices } from '../data/mockData';
-import { BusinessSettings } from '../../../../types'; // Adjust path as necessary
+import { mockServices, mockBusinessSettings, mockCustomers } from '../data/mockData';
+// FIX: Correctly import shared types to resolve module error.
+import { PaymentIntentDetails } from '../../../../types';
+// FIX: Correctly import aiService to resolve module error.
+import { getNoShowRiskScore } from './aiService';
 
 if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is not set in the environment variables.');
@@ -9,31 +11,58 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Mock business payment settings. In a real app, this would be fetched from the DB for the specific business.
-const mockPaymentSettings: BusinessSettings['payment_settings'] = {
-    stripe_connected: true,
-    deposit_type: 'fixed',
-    deposit_value: 10.00
-};
-
-export const createPaymentIntent = async (serviceId: string): Promise<string> => {
-    const service = mockServices.find(s => s.id === serviceId);
+export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string; depositAmount: number; depositReason: string; }> => {
+    const service = mockServices.find(s => s.id === details.serviceId);
     if (!service) {
         throw new Error('Service not found.');
     }
+    
+    // In a real app, customer would be passed in or looked up
+    const mockCustomerForRisk = { full_name: 'New Customer', email: `new_${Date.now()}@example.com` };
 
-    let amount = service.price * 100; // Stripe expects amount in cents
+    const riskScore = await getNoShowRiskScore({
+        ...details,
+        customer: mockCustomerForRisk
+    });
 
-    // Apply deposit logic
-    if (mockPaymentSettings.deposit_type === 'fixed' && mockPaymentSettings.deposit_value > 0) {
-        amount = mockPaymentSettings.deposit_value * 100;
-    } else if (mockPaymentSettings.deposit_type === 'percentage' && mockPaymentSettings.deposit_value > 0) {
-        amount = Math.round(amount * (mockPaymentSettings.deposit_value / 100));
+    const businessSettings = mockBusinessSettings[details.businessId];
+    if (!businessSettings) {
+        throw new Error('Business settings not found');
+    }
+
+    let amount = service.price * 100; // Default to full price in cents
+    let depositAmount = 0;
+    let depositReason = '';
+
+    const standardDepositSettings = businessSettings.payment_settings;
+    const noShowSettings = businessSettings.no_show_prevention;
+
+    // Determine the amount based on risk score and settings
+    if (noShowSettings.enabled && riskScore >= 7 && noShowSettings.high_risk_deposit_amount > 0) {
+        // High risk: use the no-show deposit amount
+        amount = noShowSettings.high_risk_deposit_amount * 100;
+        depositAmount = noShowSettings.high_risk_deposit_amount;
+        depositReason = "To help our small businesses reduce no-shows, a deposit is required for this appointment time.";
+    } else if (standardDepositSettings.deposit_type === 'fixed' && standardDepositSettings.deposit_value > 0) {
+        // Standard fixed deposit
+        amount = standardDepositSettings.deposit_value * 100;
+        depositAmount = standardDepositSettings.deposit_value;
+    } else if (standardDepositSettings.deposit_type === 'percentage' && standardDepositSettings.deposit_value > 0) {
+        // Standard percentage deposit
+        amount = Math.round(amount * (standardDepositSettings.deposit_value / 100));
+        depositAmount = amount / 100;
     }
 
     if (amount < 50) { // Stripe's minimum charge is $0.50
-        console.warn(`Calculated amount is ${amount} cents, which is below Stripe's minimum. Defaulting to service price.`);
-        amount = service.price * 100;
+        console.warn(`Calculated amount is ${amount} cents, which is below Stripe's minimum. The payment will likely fail.`);
+        // For this mock, we'll proceed, but in a real app you might prevent this.
+        if (amount === 0) {
+             return { 
+                clientSecret: '', // No payment needed
+                depositAmount: 0,
+                depositReason: ''
+            };
+        }
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -45,6 +74,8 @@ export const createPaymentIntent = async (serviceId: string): Promise<string> =>
         metadata: {
             serviceId: service.id,
             serviceName: service.name,
+            businessId: details.businessId,
+            riskScore: riskScore
         }
     });
 
@@ -52,5 +83,9 @@ export const createPaymentIntent = async (serviceId: string): Promise<string> =>
         throw new Error('Failed to create payment intent.');
     }
 
-    return paymentIntent.client_secret;
+    return { 
+        clientSecret: paymentIntent.client_secret,
+        depositAmount,
+        depositReason
+    };
 };

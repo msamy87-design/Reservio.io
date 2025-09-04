@@ -79,6 +79,18 @@ const SettingsPage: React.FC = () => {
     }));
   };
 
+  const handleNoShowChange = (field: keyof BusinessSettings['no_show_prevention'], value: any) => {
+    if (!settings) return;
+    setSettings(prev => ({
+        ...prev!,
+        no_show_prevention: {
+            ...prev!.no_show_prevention,
+            [field]: value,
+        }
+    }));
+  };
+
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -171,6 +183,49 @@ const SettingsPage: React.FC = () => {
             </div>
         </div>
         
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">No-Show & Cancellation Policy</h3>
+             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Protect your business from last-minute cancellations and no-shows.</p>
+             <div className="mt-6 space-y-6">
+                 <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div>
+                        <p className="font-medium text-gray-800 dark:text-gray-100">Enable AI No-Show Prevention</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Automatically require a deposit for bookings identified as high-risk.</p>
+                    </div>
+                    <label htmlFor="no_show_enabled" className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            id="no_show_enabled"
+                            checked={settings.no_show_prevention.enabled}
+                            onChange={(e) => handleNoShowChange('enabled', e.target.checked)}
+                            className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+                <div>
+                    <label htmlFor="high_risk_deposit_amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">High-Risk Deposit Amount</label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input 
+                            type="number" 
+                            id="high_risk_deposit_amount" 
+                            value={settings.no_show_prevention.high_risk_deposit_amount}
+                            onChange={(e) => handleNoShowChange('high_risk_deposit_amount', Number(e.target.value))}
+                            disabled={!settings.no_show_prevention.enabled}
+                            className="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:bg-gray-200 dark:disabled:bg-gray-600" 
+                            placeholder="0.00" 
+                        />
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                             <span className="text-gray-500 sm:text-sm">USD</span>
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </div>
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Marketplace Listing</h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Control how your business appears on the Reservio marketplace.</p>

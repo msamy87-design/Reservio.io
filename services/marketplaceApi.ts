@@ -1,4 +1,4 @@
-import { PublicBusinessProfile, NewPublicBookingData, Booking } from '../types';
+import { PublicBusinessProfile, NewPublicBookingData, Booking, PaymentIntentDetails, NewWaitlistEntryData } from '../types';
 import { API_BASE_URL } from '../utils/env';
 
 const handleResponse = async (response: Response) => {
@@ -48,11 +48,20 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
     return handleResponse(response);
 };
 
-export const createPaymentIntent = async (serviceId: string): Promise<{ clientSecret: string }> => {
+export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string; depositAmount: number, depositReason: string }> => {
     const response = await fetch(`${API_BASE_URL}/payments/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId }),
+        body: JSON.stringify(details),
+    });
+    return handleResponse(response);
+};
+
+export const joinWaitlist = async (data: NewWaitlistEntryData): Promise<{success: boolean}> => {
+    const response = await fetch(`${API_BASE_URL}/waitlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
     });
     return handleResponse(response);
 };

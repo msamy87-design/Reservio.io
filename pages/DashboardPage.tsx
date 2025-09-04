@@ -1,122 +1,76 @@
-
 import React, { useMemo } from 'react';
-import { Booking } from '../types';
 import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
+import { CalendarIcon, UsersIcon, TagIcon, StarIcon } from '../components/Icons';
 
-const StatCard: React.FC<{ title: string; value: string | number; isLoading: boolean }> = ({ title, value, isLoading }) => (
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</h3>
-    {isLoading ? (
-      <div className="mt-2 h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-    ) : (
-      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-2">{value}</p>
-    )}
+const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; isLoading: boolean }> = ({ title, value, icon, isLoading }) => (
+  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center space-x-4">
+    <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full">
+      {icon}
+    </div>
+    <div>
+      <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</p>
+      {isLoading ? (
+         <div className="mt-1 h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      ) : (
+         <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{value}</p>
+      )}
+    </div>
   </div>
 );
 
 
 const DashboardPage: React.FC = () => {
-  const { bookings, customers, services, loading: isLoading } = useData();
-  const { currentUser } = useAuth();
+    const { bookings, customers, services, reviews, loading } = useData();
 
-  const isPrivilegedUser = currentUser?.role === 'Owner' || currentUser?.role === 'Manager';
-
-  const todaysBookingsCount = useMemo(() => {
-    const today = new Date().toDateString();
-    let userBookings = bookings;
-    if (!isPrivilegedUser) {
-        userBookings = bookings.filter(b => b.staff.id === currentUser?.staffId);
-    }
-    return userBookings.filter(b => new Date(b.start_at).toDateString() === today).length;
-  }, [bookings, isPrivilegedUser, currentUser]);
-
-  const totalCustomers = useMemo(() => customers.length, [customers]);
-
-  const monthlyRevenue = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const revenue = bookings
-      .filter(b => {
-        const bookingDate = new Date(b.start_at);
-        return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
-      })
-      .reduce((total, booking) => {
-        const service = services.find(s => s.id === booking.service.id);
-        return total + (service?.price || 0);
-      }, 0);
-    
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(revenue);
-  }, [bookings, services]);
-  
-  const upcomingAppointments = useMemo(() => {
-    const now = new Date();
-    const todayStr = now.toDateString();
-     let userBookings = bookings;
-    if (!isPrivilegedUser) {
-        userBookings = bookings.filter(b => b.staff.id === currentUser?.staffId);
-    }
-    return userBookings
-      .filter(b => {
-        const bookingDate = new Date(b.start_at);
-        return bookingDate.toDateString() === todayStr && bookingDate >= now;
-      })
-      .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
-  }, [bookings, isPrivilegedUser, currentUser]);
-
-  const formatTime = (isoString: string) => new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const stats = useMemo(() => {
+        const upcomingBookings = bookings.filter(b => new Date(b.start_at) >= new Date() && b.status === 'confirmed');
+        const pendingReviews = reviews.filter(r => r.status === 'Pending');
+        
+        return {
+            upcomingCount: upcomingBookings.length,
+            totalCustomers: customers.length,
+            totalServices: services.length,
+            pendingReviews: pendingReviews.length
+        };
+    }, [bookings, customers, services, reviews]);
 
   return (
     <div>
       <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h2>
-      <p className="mt-2 text-gray-600 dark:text-gray-400">Welcome to your Reservio business portal.</p>
-      
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard title="Today's Bookings" value={todaysBookingsCount} isLoading={isLoading} />
-        {isPrivilegedUser && (
-            <>
-                <StatCard title="Total Customers" value={totalCustomers} isLoading={isLoading} />
-                <StatCard title="Revenue (This Month)" value={monthlyRevenue} isLoading={isLoading} />
-            </>
-        )}
-      </div>
+      <p className="mt-2 text-gray-600 dark:text-gray-400">Welcome back! Here's a quick overview of your business.</p>
 
-      <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Upcoming Appointments</h3>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Your schedule for the rest of today.</p>
-        <div className="mt-4 flow-root">
-          {isLoading ? (
-            <div className="text-center py-4 text-gray-500 dark:text-gray-400">Loading appointments...</div>
-          ) : upcomingAppointments.length > 0 ? (
-            <ul role="list" className="-my-5 divide-y divide-gray-200 dark:divide-gray-700">
-              {upcomingAppointments.map(booking => (
-                <li key={booking.id} className="py-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
-                        {booking.service.name}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate dark:text-gray-400">
-                        with {booking.customer.full_name}
-                      </p>
-                    </div>
-                     <div className="text-sm text-gray-500 dark:text-gray-400 text-right">
-                       <p>{booking.staff.full_name}</p>
-                       <p>{formatTime(booking.start_at)}</p>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-             <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                No more appointments for today.
-            </div>
-          )}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard title="Upcoming Bookings" value={stats.upcomingCount} icon={<CalendarIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
+            <StatCard title="Total Customers" value={stats.totalCustomers} icon={<UsersIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
+            <StatCard title="Services Offered" value={stats.totalServices} icon={<TagIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
+            <StatCard title="Pending Reviews" value={stats.pendingReviews} icon={<StarIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
         </div>
-      </div>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Revenue Overview</h3>
+                <div className="mt-4 h-64 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">Revenue chart coming soon</p>
+                </div>
+            </div>
+             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Upcoming Appointments</h3>
+                 <div className="mt-4 space-y-3 max-h-64 overflow-y-auto">
+                    {loading ? <p>Loading...</p> : 
+                        bookings.filter(b => new Date(b.start_at) >= new Date() && b.status === 'confirmed').slice(0, 5).map(booking => (
+                            <div key={booking.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+                                <div className="flex justify-between items-center">
+                                    <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{booking.customer.full_name}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(booking.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-300">{booking.service.name} with {booking.staff.full_name}</p>
+                            </div>
+                        ))
+                    }
+                </div>
+            </div>
+        </div>
+
     </div>
   );
 };

@@ -1,7 +1,10 @@
-import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, CustomerUser } from '../types/booking'; // Using a shared type structure
-import { AdminUser, BusinessSettings, BusinessForAdmin } from '../../../../types';
+// FIX: Correctly import shared types to resolve module errors.
+import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, WaitlistEntry, AdminUser, BusinessSettings, BusinessForAdmin } from '../../../../types';
+import { CustomerUser } from '../types/customer';
 
 // --- MOCK DATABASE ---
+
+export let mockWaitlist: WaitlistEntry[] = [];
 
 export let mockAdminUsers: (AdminUser & { passwordHash: string })[] = [
     { id: 'admin_1', email: 'superadmin@reservio.com', full_name: 'Super Admin', role: 'superadmin', passwordHash: 'hashed_supersecret' }
@@ -123,5 +126,9 @@ export const mockBusinessSettings: { [businessId: string]: BusinessSettings } = 
         marketplace_listing: { is_listed: true, public_image_url: 'https://placehold.co/800x600/818cf8/ffffff?text=The+Grooming+Lounge' },
         payment_settings: { stripe_connected: true, deposit_type: 'fixed', deposit_value: 10.00 },
         notification_settings: { new_booking_alerts: true, cancellation_alerts: true },
+        no_show_prevention: {
+            enabled: true,
+            high_risk_deposit_amount: 25.00,
+        },
     }
 };

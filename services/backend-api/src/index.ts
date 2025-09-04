@@ -12,6 +12,7 @@ import bizRouter from './routes/biz';
 import paymentsRouter from './routes/payments';
 import adminRouter from './routes/admin';
 import reviewsRouter from './routes/reviews';
+import waitlistRouter from './routes/waitlist';
 import stripeWebhooksRouter from './routes/webhooks';
 import { runSimulatedCronJobs } from './services/notificationService';
 
@@ -61,6 +62,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/biz', bizRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/waitlist', waitlistRouter);
 
 
 // --- Start Server ---

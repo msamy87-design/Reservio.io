@@ -1,12 +1,16 @@
 
 import { mockBookings, mockCustomers, mockServices, mockStaff } from '../data/mockData';
+// FIX: Correctly import shared types to resolve module errors.
 import { NewPublicBookingData } from '../types/booking';
-import { Booking, BookingStatus } from '../types/booking'; 
+// FIX: Correctly import shared types to resolve module errors.
+import { Booking, BookingStatus } from '../../../../types'; 
 import * as dateFns from 'date-fns';
+// FIX: Correctly import aiService to resolve module error.
+import { getNoShowRiskScore, findAndNotifyWaitlistMatches } from './aiService';
 
 export const createPublicBooking = async (data: NewPublicBookingData): Promise<Booking> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
+    return new Promise(async (resolve, reject) => {
+        try {
             const service = mockServices.find(s => s.id === data.serviceId);
             const staff = mockStaff.find(s => s.id === data.staffId);
 
@@ -30,6 +34,16 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
             const startTime = new Date(data.startTime);
             const endTime = dateFns.addMinutes(startTime, service.duration_minutes);
 
+            const riskScore = await getNoShowRiskScore({
+                serviceId: data.serviceId,
+                staffId: data.staffId,
+                startTime: data.startTime,
+                customer: {
+                    full_name: customer.full_name,
+                    email: customer.email,
+                },
+            });
+
             const newBooking: Booking = {
                 id: crypto.randomUUID(),
                 start_at: startTime.toISOString(),
@@ -41,13 +55,16 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
                 business: { id: data.businessId, name: 'Business Name' },
                 payment_status: data.paymentIntentId ? 'deposit_paid' : 'unpaid',
                 payment_intent_id: data.paymentIntentId || null,
+                noShowRiskScore: riskScore,
             };
             
             mockBookings.push(newBooking);
             mockBookings.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
             
             resolve(newBooking);
-        }, 1000);
+        } catch(error) {
+            reject(error);
+        }
     });
 };
 
@@ -66,6 +83,9 @@ export const cancelBooking = async (bookingId: string, customerId: string): Prom
             
             booking.status = 'cancelled' as BookingStatus;
             mockBookings[bookingIndex] = booking;
+
+            // Trigger waitlist matching (non-blocking)
+            findAndNotifyWaitlistMatches(booking);
             
             resolve(booking);
         }, 500);

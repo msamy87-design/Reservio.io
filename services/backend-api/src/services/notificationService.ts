@@ -1,5 +1,6 @@
 import { mockBookings, mockBusinessSettings, mockCustomers } from '../data/mockData';
-import { Booking } from '../types/booking';
+// FIX: Correctly import shared types to resolve module error.
+import { Booking } from '../../../../types';
 
 // In a real application, this would integrate with an email service like SendGrid, Mailgun, etc.
 // For now, it just logs to the console.
@@ -70,6 +71,14 @@ export const sendReviewRequest = (booking: Booking, customerEmail: string) => {
         customerEmail,
         'How was your recent appointment?',
         `Hi ${booking.customer.full_name},\n\nThanks for visiting us! We'd love to hear your feedback on your recent ${booking.service.name} service. Please take a moment to leave a review.\n\n[Link to review page on Reservio]`
+    );
+};
+
+export const sendWaitlistNotification = (customerEmail: string, booking: Booking) => {
+    sendNotification(
+        customerEmail,
+        'An appointment slot has opened up!',
+        `Hi there,\n\nA slot for ${booking.service.name} with ${booking.staff.full_name} at ${new Date(booking.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} has become available.\n\nThis spot is in high demand! Book now before it's gone.\n\n[Link to booking page with pre-filled details]`
     );
 };
 
