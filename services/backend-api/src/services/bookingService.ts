@@ -1,11 +1,9 @@
 
+
 import { mockBookings, mockCustomers, mockServices, mockStaff } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module errors.
 import { NewPublicBookingData } from '../types/booking';
-// FIX: Correctly import shared types to resolve module errors.
 import { Booking, BookingStatus } from '../../../../types'; 
 import * as dateFns from 'date-fns';
-// FIX: Correctly import aiService to resolve module error.
 import { getNoShowRiskScore, findAndNotifyWaitlistMatches } from './aiService';
 
 export const createPublicBooking = async (data: NewPublicBookingData): Promise<Booking> => {

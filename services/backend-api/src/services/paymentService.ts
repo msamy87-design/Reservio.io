@@ -1,8 +1,8 @@
+
+
 import Stripe from 'stripe';
 import { mockServices, mockBusinessSettings, mockCustomers } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module error.
 import { PaymentIntentDetails } from '../../../../types';
-// FIX: Correctly import aiService to resolve module error.
 import { getNoShowRiskScore } from './aiService';
 
 if (!process.env.STRIPE_SECRET_KEY) {

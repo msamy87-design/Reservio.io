@@ -289,3 +289,22 @@ export const ShieldCheckIcon: React.FC<IconProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" />
   </svg>
 );
+
+export const LightBulbIcon: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a7.5 7.5 0 01-7.5 0c-1.451 0-2.733-.81-3.465-2.035A9.753 9.753 0 013 10.5c0-1.493.357-2.894 1.008-4.118a9.75 9.75 0 0115.984 0A9.753 9.753 0 0121 10.5c0 1.493-.357 2.894-1.008 4.118a7.5 7.5 0 01-3.465 2.035z" />
+    </svg>
+);
+
+export const CurrencyDollarIcon: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+export const SquaresPlusIcon: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15M8.25 9.75h7.5v7.5h-7.5V9.75z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m3-3l-3 3m0 0v4.5m0-4.5h4.5m0 0l-3 3m0 0l3 3m-3-3v4.5m0 0h4.5m4.5-4.5v4.5m0-4.5h-4.5m4.5 0l-3 3m3-3l-3-3m3 3h-4.5m-4.5 4.5v-4.5m0 4.5h-4.5m4.5 0L9 15m-3 3l3-3m0 0v-4.5m0 4.5h-4.5m0 0l3-3m-3 3l-3-3m3 3h-4.5" />
+    </svg>
+);

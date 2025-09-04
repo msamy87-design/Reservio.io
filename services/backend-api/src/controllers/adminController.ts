@@ -1,10 +1,8 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import * as adminService from '../services/adminService';
-// FIX: Correctly import shared types to resolve module error.
 import { BusinessVerificationStatus } from '../../../../types';
 
-// FIX: Use qualified express types to resolve type errors.
 export const getStats = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const stats = await adminService.getPlatformStats();
@@ -14,7 +12,6 @@ export const getStats = async (req: express.Request, res: express.Response): Pro
     }
 };
 
-// FIX: Use qualified express types to resolve type errors.
 export const getBusinesses = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const businesses = await adminService.getAllBusinesses();
@@ -24,7 +21,6 @@ export const getBusinesses = async (req: express.Request, res: express.Response)
     }
 };
 
-// FIX: Use qualified express types to resolve type errors.
 export const updateBusinessStatus = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;

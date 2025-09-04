@@ -1,331 +1,218 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from './Modal';
-import { PublicBusinessProfile, PublicService, PublicStaff, NewPublicBookingData, PaymentIntentDetails } from '../types';
-import { getAvailability, createPaymentIntent } from '../services/marketplaceApi';
+import { PublicBusinessProfile, PublicService, NewPublicBookingData, PublicCustomerUser } from '../types';
+import { getAvailability, createPaymentIntent, createPublicBooking } from '../services/marketplaceApi';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
-import { ChevronLeftIcon, CheckIcon, CreditCardIcon, CalendarDaysIcon, ClockIcon, UserCircleIcon, ShieldCheckIcon } from './Icons';
-import * as dateFns from 'date-fns';
 import { useToast } from '../contexts/ToastContext';
 import CheckoutForm from './CheckoutForm';
 import WaitlistModal from './WaitlistModal';
+import * as dateFns from 'date-fns';
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 
 interface BookingModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    service: PublicService;
-    business: PublicBusinessProfile;
-    initialStaffId?: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+  service: PublicService;
+  business: PublicBusinessProfile;
+  initialStaffId?: string | null;
 }
-
-type BookingStep = 'staff' | 'dateTime' | 'details' | 'payment' | 'confirmation';
-type AnyStaff = { id: 'any'; full_name: string; role: 'Stylist' };
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, business, initialStaffId }) => {
     const { currentCustomer } = useCustomerAuth();
     const { addToast } = useToast();
-
-    const [step, setStep] = useState<BookingStep>('staff');
-    const [selectedStaff, setSelectedStaff] = useState<PublicStaff | null>(null);
-    const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [step, setStep] = useState(1);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedStaffId, setSelectedStaffId] = useState(initialStaffId || 'any');
+    const [availability, setAvailability] = useState<Record<string, string[]>>({});
+    const [loadingAvailability, setLoadingAvailability] = useState(true);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [availableTimes, setAvailableTimes] = useState<Record<string, string[]>>({});
-    const [isLoadingTimes, setIsLoadingTimes] = useState(false);
-    
-    const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
     const [clientSecret, setClientSecret] = useState<string | null>(null);
-    const [depositInfo, setDepositInfo] = useState({ amount: 0, reason: '' });
-
+    const [depositAmount, setDepositAmount] = useState<number>(0);
+    const [depositReason, setDepositReason] = useState<string>('');
+    const [customerDetails, setCustomerDetails] = useState({ fullName: '', email: '', phone: '' });
     const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
-
-    useEffect(() => {
-        if (currentCustomer) {
-            setCustomerDetails({
-                name: currentCustomer.full_name,
-                email: currentCustomer.email,
-                phone: '', // Assuming phone is not in PublicCustomerUser
-            });
-        }
-    }, [currentCustomer]);
-    
     useEffect(() => {
         if (isOpen) {
-            // Reset state when modal opens
-            if (initialStaffId) {
-                const staff = business.staff.find(s => s.id === initialStaffId);
-                setSelectedStaff(staff || null);
-                setSelectedStaffId(initialStaffId);
-                setStep('dateTime');
-            } else if (business.staff.length === 1) {
-                setStep('dateTime');
-                setSelectedStaff(business.staff[0]);
-                setSelectedStaffId(business.staff[0].id);
-            } else {
-                setStep('staff');
-                setSelectedStaff(null);
-                setSelectedStaffId(null);
+            if (currentCustomer) {
+                setCustomerDetails({ fullName: currentCustomer.full_name, email: currentCustomer.email, phone: '' });
             }
-            setSelectedDate(new Date());
-            setSelectedTime(null);
-            setClientSecret(null);
-        }
-    }, [isOpen, business.staff, initialStaffId]);
-
-    useEffect(() => {
-        const fetchTimes = async () => {
-            if (selectedStaffId && selectedDate) {
-                setIsLoadingTimes(true);
-                setSelectedTime(null);
-                try {
-                    const times = await getAvailability(business.id, service.id, selectedStaffId, dateFns.format(selectedDate, 'yyyy-MM-dd'));
-                    setAvailableTimes(times);
-                } catch (error) {
-                    console.error("Failed to fetch availability", error);
-                    setAvailableTimes({});
-                } finally {
-                    setIsLoadingTimes(false);
-                }
-            }
-        };
-        fetchTimes();
-    }, [selectedStaffId, selectedDate, business.id, service.id]);
-    
-    const weekDays = useMemo(() => {
-        const start = dateFns.startOfWeek(selectedDate);
-        return Array.from({ length: 7 }).map((_, i) => dateFns.addDays(start, i));
-    }, [selectedDate]);
-
-    const handleNextStep = async () => {
-        if (step === 'dateTime') {
-             if (currentCustomer) {
-                setStep('payment');
-            } else {
-                setStep('details');
-            }
-        } else if (step === 'details') {
-            setStep('payment');
-        }
-    };
-    
-    useEffect(() => {
-        const fetchPaymentIntent = async () => {
-            if (step === 'payment' && !clientSecret && selectedStaff && selectedTime) {
-                 try {
-                    const paymentDetails: PaymentIntentDetails = {
-                        businessId: business.id,
-                        serviceId: service.id,
-                        staffId: selectedStaff.id,
-                        startTime: new Date(`${dateFns.format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}`).toISOString(),
-                    };
-                    const { clientSecret, depositAmount, depositReason } = await createPaymentIntent(paymentDetails);
-                    setClientSecret(clientSecret);
-                    setDepositInfo({ amount: depositAmount, reason: depositReason });
-                } catch (error) {
-                    addToast('Could not initialize payment.', 'error');
-                    setStep('details'); // Go back
-                }
-            }
-        };
-        fetchPaymentIntent();
-    }, [step, clientSecret, service.id, addToast, business.id, selectedStaff, selectedTime, selectedDate]);
-
-    const handlePrevStep = () => {
-        if (step === 'dateTime') {
-            if (initialStaffId) {
-                 onClose(); // If pre-selected via rebook, just close
-            } else {
-                setStep(business.staff.length > 1 ? 'staff' : 'staff')
-            }
-        }
-        else if (step === 'details') setStep('dateTime');
-        else if (step === 'payment') {
-            if (currentCustomer) setStep('dateTime');
-            else setStep('details');
-        }
-    };
-    
-    const handleStaffSelect = (staff: PublicStaff | AnyStaff) => {
-        setSelectedStaffId(staff.id);
-        if (staff.id === 'any') {
-            setSelectedStaff(null);
         } else {
-            setSelectedStaff(staff as PublicStaff);
+            // Reset state on close
+            setTimeout(() => {
+                setStep(1);
+                setSelectedDate(new Date());
+                setSelectedStaffId(initialStaffId || 'any');
+                setSelectedTime(null);
+                setClientSecret(null);
+            }, 300); // delay to allow for closing animation
         }
-        setStep('dateTime');
-    };
+    }, [isOpen, currentCustomer, initialStaffId]);
 
-    const handleTimeSelect = (timeSlot: string) => {
-        setSelectedTime(timeSlot);
+    const fetchAvailability = useCallback(async () => {
+        setLoadingAvailability(true);
+        try {
+            const data = await getAvailability(business.id, service.id, selectedStaffId, dateFns.format(selectedDate, 'yyyy-MM-dd'));
+            setAvailability(data);
+        } catch (error) {
+            console.error("Failed to fetch availability", error);
+            setAvailability({});
+        } finally {
+            setLoadingAvailability(false);
+        }
+    }, [business.id, service.id, selectedStaffId, selectedDate]);
 
-        if (selectedStaffId === 'any') {
-            const availableStaffIds = availableTimes[timeSlot];
-            if (availableStaffIds && availableStaffIds.length > 0) {
-                const assignedStaff = business.staff.find(s => s.id === availableStaffIds[0]);
-                if (assignedStaff) {
-                    setSelectedStaff(assignedStaff);
-                }
+    useEffect(() => {
+        if (isOpen && step === 1) {
+            fetchAvailability();
+        }
+    }, [isOpen, step, fetchAvailability]);
+    
+    const staffForService = business.staff.filter(s =>
+        (s as any).services?.includes(service.id) || 
+        mockServices.find(serv => serv.id === service.id)?.staffIds.includes(s.id) // Fallback for mock structure
+    );
+
+    const handleTimeSelect = async (time: string, staffId: string) => {
+        setSelectedTime(time);
+        setSelectedStaffId(staffId);
+        
+        const startTime = dateFns.parse(time, 'HH:mm', selectedDate).toISOString();
+
+        try {
+            const { clientSecret, depositAmount, depositReason } = await createPaymentIntent({ serviceId: service.id, businessId: business.id, staffId, startTime });
+            if (clientSecret) { // Deposit required
+                setClientSecret(clientSecret);
+                setDepositAmount(depositAmount);
+                setDepositReason(depositReason);
+                setStep(2);
+            } else { // No deposit needed, book directly
+                await handleDirectBooking(staffId, startTime);
             }
+        } catch (error) {
+            addToast('Could not proceed with booking. Please try another time.', 'error');
         }
     };
     
-    const staffOptions: (PublicStaff | AnyStaff)[] = [
-        { id: 'any', full_name: 'Any Available Professional', role: 'Stylist' },
-        ...business.staff
-    ];
-
-    const renderStep = () => {
-        switch(step) {
-            case 'staff':
-                return (
-                    <div>
-                        <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Select a Staff Member</h3>
-                        <div className="space-y-2">
-                            {staffOptions.map(staff => (
-                                <button key={staff.id} onClick={() => handleStaffSelect(staff)} className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600">
-                                    <p className="font-semibold">{staff.full_name}</p>
-                                    {staff.id !== 'any' && <p className="text-xs text-gray-500 dark:text-gray-400">{staff.role}</p>}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                );
-            case 'dateTime':
-                return (
-                    <div>
-                        <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Select Date & Time</h3>
-                        {/* Date Picker */}
-                        <div className="flex items-center justify-between mb-4">
-                            <button onClick={() => setSelectedDate(dateFns.subWeeks(selectedDate, 1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronLeftIcon className="h-5 w-5"/></button>
-                            <span className="font-semibold">{dateFns.format(selectedDate, 'MMMM yyyy')}</span>
-                            <button onClick={() => setSelectedDate(dateFns.addWeeks(selectedDate, 1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronLeftIcon className="h-5 w-5 rotate-180"/></button>
-                        </div>
-                        <div className="grid grid-cols-7 text-center text-sm gap-1 mb-4">
-                            {weekDays.map(day => (
-                                <div key={day.toString()} onClick={() => setSelectedDate(day)} className={`p-2 rounded-lg cursor-pointer ${dateFns.isSameDay(day, selectedDate) ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
-                                    <p className="text-xs">{dateFns.format(day, 'EEE')}</p>
-                                    <p>{dateFns.format(day, 'd')}</p>
-                                </div>
-                            ))}
-                        </div>
-                        {/* Time Picker */}
-                        <div className="max-h-48 overflow-y-auto grid grid-cols-3 gap-2">
-                            {isLoadingTimes ? <p>Loading times...</p> : Object.keys(availableTimes).length === 0 ? (
-                                <div className="col-span-3 text-center text-sm text-gray-500 p-4">
-                                    <p>No available times for this day.</p>
-                                    <button onClick={() => setIsWaitlistModalOpen(true)} className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
-                                        Join Waitlist
-                                    </button>
-                                </div>
-                            ) : Object.keys(availableTimes).sort().map(timeSlot => (
-                                <button key={timeSlot} onClick={() => handleTimeSelect(timeSlot)} className={`p-2 rounded-md text-sm ${selectedTime === timeSlot ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
-                                    {timeSlot}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                );
-            case 'details':
-                 return (
-                    <div>
-                        <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Your Information</h3>
-                         <div className="space-y-4">
-                            <input type="text" placeholder="Full Name" value={customerDetails.name} onChange={e => setCustomerDetails({...customerDetails, name: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" required />
-                            <input type="email" placeholder="Email" value={customerDetails.email} onChange={e => setCustomerDetails({...customerDetails, email: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" required />
-                            <input type="tel" placeholder="Phone Number" value={customerDetails.phone} onChange={e => setCustomerDetails({...customerDetails, phone: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" required />
-                         </div>
-                    </div>
-                );
-            case 'payment':
-                return (
-                    <div>
-                        <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Payment Details</h3>
-                        {depositInfo.amount > 0 && (
-                            <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/40 rounded-lg text-center">
-                                <ShieldCheckIcon className="h-8 w-8 text-indigo-500 mx-auto mb-2"/>
-                                <p className="text-sm text-indigo-800 dark:text-indigo-200">{depositInfo.reason}</p>
-                                <p className="text-sm font-bold text-indigo-800 dark:text-indigo-200">A fully refundable deposit of ${depositInfo.amount.toFixed(2)} is required.</p>
-                            </div>
-                        )}
-                        {clientSecret ? (
-                            <CheckoutForm 
-                                clientSecret={clientSecret}
-                                bookingData={{
-                                    businessId: business.id,
-                                    serviceId: service.id,
-                                    staffId: selectedStaff!.id,
-                                    startTime: new Date(`${dateFns.format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}`).toISOString(),
-                                    customer: { full_name: customerDetails.name, email: customerDetails.email, phone: customerDetails.phone },
-                                }}
-                                onSuccess={() => setStep('confirmation')}
-                            />
-                        ) : (
-                            <div className="text-center">Loading payment form...</div>
-                        )}
-                    </div>
-                );
-            case 'confirmation':
-                return (
-                    <div className="text-center">
-                        <CheckIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Booking Confirmed!</h3>
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">Your appointment is scheduled. You'll receive a confirmation email shortly.</p>
-                        <button onClick={onClose} className="mt-6 w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700">
-                            Done
-                        </button>
-                    </div>
-                );
+    const handleDirectBooking = async (staffId: string, startTime: string) => {
+        if (!isCustomerFormValid()) {
+            addToast("Please fill in your name and email.", "error");
+            setStep(2); // Go to details form
+            return;
+        }
+        
+        const bookingData: NewPublicBookingData = {
+            businessId: business.id,
+            serviceId: service.id,
+            staffId: staffId,
+            startTime: startTime,
+            customer: {
+                full_name: customerDetails.fullName,
+                email: customerDetails.email,
+                phone: customerDetails.phone,
+            },
+        };
+        try {
+            await createPublicBooking(bookingData);
+            addToast('Booking confirmed!', 'success');
+            onClose();
+        } catch (error) {
+            addToast('Failed to create booking.', 'error');
         }
     };
+    
+    const handleBookingSuccess = () => {
+        onClose();
+    };
 
-    const isNextDisabled = 
-        (step === 'staff' && !selectedStaffId) ||
-        (step === 'dateTime' && !selectedTime) ||
-        (step === 'details' && (!customerDetails.name || !customerDetails.email || !customerDetails.phone));
+    const isCustomerFormValid = () => customerDetails.fullName.trim() !== '' && customerDetails.email.trim() !== '';
+
+    const handleCustomerDetailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCustomerDetails({ ...customerDetails, [e.target.name]: e.target.value });
+    };
+    
+    const availableStaffIds = Object.keys(availability);
+    const availableStaff = business.staff.filter(s => availableStaffIds.includes(s.id));
+    
+    // MOCK DATA FALLBACK for staff assignment
+    const mockServices = [{ id: 'serv_1', staffIds: ['staff_1', 'staff_2'] }, { id: 'serv_2', staffIds: ['staff_1', 'staff_2', 'staff_3'] }, { id: 'serv_3', staffIds: ['staff_2'] }, { id: 'serv_4', staffIds: ['staff_1'] }];
+    const serviceStaffIds = mockServices.find(s => s.id === service.id)?.staffIds;
+    const renderableStaff = serviceStaffIds ? business.staff.filter(s => serviceStaffIds.includes(s.id)) : business.staff;
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} title="">
-                <div className="p-2">
-                    {/* Header */}
-                    <div className="mb-4 pb-4 border-b dark:border-gray-600">
-                        <h2 className="text-xl font-bold">{service.name}</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{business.name}</p>
-                        <div className="mt-2 flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2"><CalendarDaysIcon className="h-4 w-4" /><span>{selectedDate ? dateFns.format(selectedDate, 'EEE, MMM d') : '...'}</span></div>
-                            <div className="flex items-center gap-2"><ClockIcon className="h-4 w-4" /><span>{selectedTime || '...'}</span></div>
-                            <div className="flex items-center gap-2"><UserCircleIcon className="h-4 w-4" /><span>{selectedStaff?.full_name || (selectedStaffId === 'any' ? 'Any Available' : '...')}</span></div>
-                            <div className="font-bold text-lg">${service.price.toFixed(2)}</div>
-                        </div>
+        <Modal isOpen={isOpen} onClose={onClose} title={`Book: ${service.name}`}>
+            {step === 1 && (
+                <div>
+                    {/* Date and Staff Selector */}
+                    <div className="flex justify-between items-center mb-4">
+                        <button onClick={() => setSelectedDate(d => dateFns.addDays(d, -1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronLeftIcon className="h-5 w-5"/></button>
+                        <span className="font-semibold text-lg">{dateFns.format(selectedDate, 'EEEE, MMMM d')}</span>
+                        <button onClick={() => setSelectedDate(d => dateFns.addDays(d, 1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronRightIcon className="h-5 w-5"/></button>
                     </div>
+                    <select value={selectedStaffId} onChange={e => setSelectedStaffId(e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 mb-4">
+                        <option value="any">Any Available</option>
+                        {renderableStaff.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                    </select>
                     
-                    {/* Step Content */}
-                    <div className="min-h-[250px]">
-                        {renderStep()}
+                    {/* Availability */}
+                    <div className="max-h-64 overflow-y-auto">
+                        {loadingAvailability ? <p>Loading availability...</p> : (
+                           availableStaff.length > 0 ? availableStaff.map(staff => (
+                               <div key={staff.id} className="mb-4">
+                                   <h4 className="font-semibold">{staff.full_name}</h4>
+                                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
+                                       {availability[staff.id]?.map(time => (
+                                           <button key={time} onClick={() => handleTimeSelect(time, staff.id)} className="p-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-md hover:bg-indigo-600 hover:text-white">
+                                               {dateFns.format(dateFns.parse(time, 'HH:mm', new Date()), 'h:mm a')}
+                                           </button>
+                                       ))}
+                                   </div>
+                               </div>
+                           )) : (
+                               <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    <p className="font-semibold">No appointments available on this day.</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Try another date or join the waitlist.</p>
+                                    <button onClick={() => setIsWaitlistModalOpen(true)} className="mt-3 px-4 py-2 text-sm bg-indigo-600 text-white rounded-md">Join Waitlist</button>
+                               </div>
+                           )
+                        )}
                     </div>
-
-                    {/* Footer */}
-                    {step !== 'confirmation' && (
-                        <div className="mt-6 flex justify-between items-center">
-                            <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && (business.staff.length <= 1 || !!initialStaffId)) } className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
-                                Back
-                            </button>
-                            <button onClick={handleNextStep} disabled={isNextDisabled} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800">
-                                Next
-                            </button>
+                </div>
+            )}
+            {step === 2 && (
+                <div>
+                    <button onClick={() => setStep(1)} className="text-sm text-indigo-600 mb-4">&larr; Back to time selection</button>
+                    {!currentCustomer && (
+                        <div className="space-y-4 mb-4 p-4 border rounded-md dark:border-gray-600">
+                            <h3 className="font-semibold">Your Details</h3>
+                            <input type="text" name="fullName" placeholder="Full Name" value={customerDetails.fullName} onChange={handleCustomerDetailChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                            <input type="email" name="email" placeholder="Email" value={customerDetails.email} onChange={handleCustomerDetailChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                            <input type="tel" name="phone" placeholder="Phone (Optional)" value={customerDetails.phone} onChange={handleCustomerDetailChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" />
                         </div>
                     )}
+                    {depositAmount > 0 && (
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-lg mb-4">
+                            <p className="font-bold">Deposit Required: ${depositAmount.toFixed(2)}</p>
+                            <p className="text-sm mt-1">{depositReason}</p>
+                        </div>
+                    )}
+                    {clientSecret && isCustomerFormValid() && <CheckoutForm clientSecret={clientSecret} bookingData={{ businessId: business.id, serviceId: service.id, staffId: selectedStaffId, startTime: dateFns.parse(selectedTime!, 'HH:mm', selectedDate).toISOString(), customer: { full_name: customerDetails.fullName, email: customerDetails.email, phone: customerDetails.phone } }} onSuccess={handleBookingSuccess} />}
                 </div>
-            </Modal>
-            <WaitlistModal 
-                isOpen={isWaitlistModalOpen}
-                onClose={() => setIsWaitlistModalOpen(false)}
-                businessId={business.id}
-                serviceId={service.id}
-                date={selectedDate}
-            />
+            )}
+        </Modal>
+        <WaitlistModal 
+            isOpen={isWaitlistModalOpen}
+            onClose={() => setIsWaitlistModalOpen(false)}
+            businessId={business.id}
+            serviceId={service.id}
+            date={selectedDate}
+        />
         </>
     );
 };
+// Dummy mock services for fallback
+const mockServices = [{ id: 'serv_1', staffIds: ['staff_1', 'staff_2'] }, { id: 'serv_2', staffIds: ['staff_1', 'staff_2', 'staff_3'] }, { id: 'serv_3', staffIds: ['staff_2'] }, { id: 'serv_4', staffIds: ['staff_1'] }];
+
 
 export default BookingModal;

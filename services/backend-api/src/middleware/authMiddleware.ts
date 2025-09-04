@@ -1,7 +1,6 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import { PublicCustomerUser } from '../types/customer';
-// FIX: Correctly import AdminUser type to resolve module error.
 import { AdminUser } from '../../../../types';
 
 // In a real app, you would use a library like jsonwebtoken to verify the token
@@ -25,20 +24,16 @@ const mockVerifyBusinessToken = (token: string): { businessId: string, email: st
      return null;
 }
 
-// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedRequest extends express.Request {
   customer?: PublicCustomerUser;
 }
-// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedBusinessRequest extends express.Request {
   business?: { businessId: string, email: string };
 }
-// FIX: Extend express.Request to ensure correct types.
 export interface AuthenticatedAdminRequest extends express.Request {
   admin?: AdminUser;
 }
 
-// FIX: Qualify types with express to resolve type errors.
 export const protectCustomer = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -64,7 +59,6 @@ export const protectCustomer = (req: express.Request, res: express.Response, nex
     }
 };
 
-// FIX: Qualify types with express to resolve type errors.
 export const protectBusiness = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
@@ -98,7 +92,6 @@ export const protectBusiness = (req: express.Request, res: express.Response, nex
     }
 };
 
-// FIX: Qualify types with express to resolve type errors.
 export const protectAdmin = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

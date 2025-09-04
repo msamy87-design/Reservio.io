@@ -15,3 +15,10 @@ export interface NewReviewData {
     rating: number;
     comment: string;
 }
+
+export interface AIGrowthInsight {
+    id: string;
+    type: 'pricing' | 'bundling';
+    title: string;
+    description: string;
+}

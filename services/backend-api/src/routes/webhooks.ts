@@ -1,4 +1,4 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import { bookingsService } from '../services/bookingsService';
@@ -15,7 +15,6 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  // FIX: Use qualified express types to resolve type errors.
   async (req: express.Request, res: express.Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;

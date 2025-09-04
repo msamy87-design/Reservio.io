@@ -1,3 +1,4 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -15,7 +16,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // FIX: Use path.resolve(process.cwd()) to fix potential __dirname error and explicitly point to the project root.
       '@': path.resolve(process.cwd(), 'src'),
     },
   },

@@ -1,9 +1,8 @@
 
+
 import { mockBookings, mockReviews, mockServices, mockStaff } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module errors.
 import { Booking, BookingStatus, Review, ReviewStatus } from '../../../../types';
 import { NewReviewData } from '../types/booking';
-// FIX: Correctly import aiService to resolve module error.
 import { findAndNotifyWaitlistMatches } from './aiService';
 
 // Helper to update average ratings for services and staff

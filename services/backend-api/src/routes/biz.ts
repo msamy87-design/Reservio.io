@@ -80,5 +80,8 @@ router.delete('/products/:id', bizController.deleteProduct);
 router.get('/transactions', bizController.getTransactions);
 router.post('/transactions', bizController.createTransaction);
 
+// --- AI ---
+router.get('/me/growth-insights', bizController.getGrowthInsights);
+
 
 export default router;

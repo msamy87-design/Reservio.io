@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Modal from './Modal';
 // FIX: Import DayOfWeek to fix typing issues with mapping over days.

@@ -1,5 +1,6 @@
+
+
 import { mockBookings, mockBusinessSettings, mockCustomers } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module error.
 import { Booking } from '../../../../types';
 
 // In a real application, this would integrate with an email service like SendGrid, Mailgun, etc.

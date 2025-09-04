@@ -15,6 +15,7 @@ import {
     NewProductData,
     NewTransactionData,
 } from '../types/booking';
+import { getAIGrowthInsights } from '../services/aiService';
 
 // Since this is a mock, we'll just send back success/failure
 export const login = (req: express.Request, res: express.Response) => res.json({ message: 'Login mock placeholder' });
@@ -166,3 +167,15 @@ export const deleteProduct = deleteItem(bizService.deleteProduct);
 // --- Transactions ---
 export const getTransactions = getAll(bizService.getTransactions);
 export const createTransaction = create((_, data: NewTransactionData) => bizService.createTransaction(data));
+
+// --- AI ---
+export const getGrowthInsights = async (req: AuthenticatedBusinessRequest, res: express.Response) => {
+    try {
+        const businessId = req.business!.businessId;
+        const insights = await getAIGrowthInsights(businessId);
+        res.json(insights);
+    } catch (e) {
+        console.error("Error generating AI growth insights:", e);
+        res.status(500).json({ message: 'Failed to generate AI insights' });
+    }
+};

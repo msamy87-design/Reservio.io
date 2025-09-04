@@ -1,11 +1,10 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
-// FIX: Use qualified express types to resolve type errors.
-export const create = async (req: express.Request, res: express.Response): Promise<void> => {
+export const create = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
 
@@ -27,7 +26,6 @@ export const create = async (req: express.Request, res: express.Response): Promi
     }
 };
 
-// FIX: Use qualified express types to resolve type errors.
 export const cancel = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;

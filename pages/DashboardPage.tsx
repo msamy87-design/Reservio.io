@@ -1,6 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { CalendarIcon, UsersIcon, TagIcon, StarIcon } from '../components/Icons';
+import { CalendarIcon, UsersIcon, TagIcon, StarIcon, LightBulbIcon, CurrencyDollarIcon, SquaresPlusIcon } from '../components/Icons';
+import { AIGrowthInsight } from '../types';
+import { fetchAIGrowthInsights } from '../services/api';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; isLoading: boolean }> = ({ title, value, icon, isLoading }) => (
   <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center space-x-4">
@@ -18,9 +20,45 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.Re
   </div>
 );
 
+const InsightCard: React.FC<{ insight: AIGrowthInsight }> = ({ insight }) => {
+    const Icon = {
+        pricing: CurrencyDollarIcon,
+        bundling: SquaresPlusIcon,
+    }[insight.type] || LightBulbIcon;
+
+    return (
+        <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg flex items-start gap-4">
+            <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
+                <Icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+                <h4 className="font-semibold text-indigo-800 dark:text-indigo-200">{insight.title}</h4>
+                <p className="text-sm text-indigo-700/80 dark:text-indigo-300/80">{insight.description}</p>
+            </div>
+        </div>
+    );
+};
+
 
 const DashboardPage: React.FC = () => {
     const { bookings, customers, services, reviews, loading } = useData();
+    const [insights, setInsights] = useState<AIGrowthInsight[]>([]);
+    const [insightsLoading, setInsightsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadInsights = async () => {
+            setInsightsLoading(true);
+            try {
+                const fetchedInsights = await fetchAIGrowthInsights();
+                setInsights(fetchedInsights);
+            } catch (error) {
+                console.error("Failed to fetch AI insights:", error);
+            } finally {
+                setInsightsLoading(false);
+            }
+        };
+        loadInsights();
+    }, []);
 
     const stats = useMemo(() => {
         const upcomingBookings = bookings.filter(b => new Date(b.start_at) >= new Date() && b.status === 'confirmed');
@@ -44,6 +82,26 @@ const DashboardPage: React.FC = () => {
             <StatCard title="Total Customers" value={stats.totalCustomers} icon={<UsersIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
             <StatCard title="Services Offered" value={stats.totalServices} icon={<TagIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
             <StatCard title="Pending Reviews" value={stats.pendingReviews} icon={<StarIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>} isLoading={loading} />
+        </div>
+        
+        <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <div className="flex items-center gap-3">
+                 <LightBulbIcon className="h-6 w-6 text-yellow-500" />
+                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">AI Growth Insights</h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Actionable advice powered by AI to help you grow your revenue.</p>
+            <div className="mt-4 space-y-3">
+                {insightsLoading ? (
+                    <div className="space-y-3">
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                    </div>
+                ) : insights.length > 0 ? (
+                    insights.map(insight => <InsightCard key={insight.id} insight={insight} />)
+                ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No new insights right now. Check back later!</p>
+                )}
+            </div>
         </div>
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">

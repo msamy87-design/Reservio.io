@@ -1,10 +1,8 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import * as paymentService from '../services/paymentService';
-// FIX: Correctly import shared types to resolve module error.
 import { PaymentIntentDetails } from '../../../../types';
 
-// FIX: Use qualified express types to resolve type errors.
 export const create = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const details: PaymentIntentDetails = req.body;

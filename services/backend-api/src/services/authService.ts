@@ -2,7 +2,6 @@
 import { mockCustomerUsers, mockAdminUsers } from '../data/mockData';
 import { AuthResponse, AdminAuthResponse } from '../types/auth';
 import { PublicCustomerUser, CustomerUser } from '../types/customer';
-// FIX: Correctly import AdminUser type to resolve module error.
 import { AdminUser } from '../../../../types';
 
 // In a real app, use a library like bcrypt for password hashing

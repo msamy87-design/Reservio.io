@@ -1,6 +1,7 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
-import { Booking } from "../../../../types";
-import { mockWaitlist } from "../data/mockData";
+import { Booking, AIGrowthInsight, Transaction } from "../../../../types";
+import { mockWaitlist, mockBookings, mockServices, mockTransactions } from "../data/mockData";
 import { sendWaitlistNotification } from "./notificationService";
 import * as dateFns from 'date-fns';
 
@@ -105,4 +106,68 @@ export const findAndNotifyWaitlistMatches = (cancelledBooking: Booking) => {
     const notifiedIds = new Set(matches.slice(0, 3).map(m => m.id));
     // This is a mock; in a real DB, you'd delete them.
     // mockWaitlist = mockWaitlist.filter(entry => !notifiedIds.has(entry.id));
+};
+
+/**
+ * Analyzes business data to provide revenue growth insights.
+ */
+export const getAIGrowthInsights = async (businessId: string): Promise<AIGrowthInsight[]> => {
+    if (!ai) {
+        console.log("AI service disabled. Returning empty insights.");
+        return [];
+    }
+
+    // In a real app, you'd fetch data for the specific businessId
+    const relevantBookings = mockBookings;
+    const relevantServices = mockServices;
+    const relevantTransactions = mockTransactions;
+
+    const prompt = `
+        You are a business growth consultant for a salon/barbershop.
+        Analyze the following business data and identify the top 2-3 most impactful opportunities for revenue growth.
+        Focus on identifying potential pricing adjustments and service bundling opportunities.
+
+        Data:
+        - Services Offered: ${JSON.stringify(relevantServices.map(s => ({ id: s.id, name: s.name, price: s.price })))}
+        - Recent Bookings: ${JSON.stringify(relevantBookings.map(b => ({ serviceId: b.service.id, date: b.start_at })))}
+        - Recent Transactions: ${JSON.stringify(relevantTransactions.map(t => ({ items: t.items.map(i => ({ id: i.id, name: i.name, type: i.type })) })))}
+
+        For each opportunity, provide a unique ID, a type ('pricing' or 'bundling'), a short, catchy title, and a one-sentence description explaining the opportunity.
+        Your response must be a valid JSON array.
+    `;
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            id: { type: Type.STRING },
+                            type: { type: Type.STRING, enum: ['pricing', 'bundling'] },
+                            title: { type: Type.STRING },
+                            description: { type: Type.STRING }
+                        },
+                        required: ["id", "type", "title", "description"]
+                    }
+                },
+            },
+        });
+        
+        const jsonText = response.text.trim();
+        const insights: AIGrowthInsight[] = JSON.parse(jsonText);
+        console.log('[aiService] Gemini Growth Insights:', insights);
+        return insights;
+    } catch (error) {
+        console.error("Error calling Gemini API for growth insights:", error);
+        // Fallback to mock data on error
+        return [
+            { id: 'mock_1', type: 'pricing', title: 'Weekend Price Adjustment', description: "Our data shows 'Deluxe Shave' is fully booked every Friday. Consider increasing its price by $5 on weekends." },
+            { id: 'mock_2', type: 'bundling', title: 'Create a Grooming Package', description: "Customers who book 'Haircut' often also get a 'Beard Trim'. Offer them as a discounted bundle." }
+        ];
+    }
 };

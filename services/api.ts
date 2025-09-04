@@ -26,16 +26,31 @@ import {
     BulkImportResult,
     Transaction,
     NewTransactionData,
+    AIGrowthInsight,
 } from '../types';
 
 // Helper to handle API responses
-const handleResponse = async (response: Response) => {
-    if (response.status === 204) return null; // Handle No Content
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || `API request failed with status ${response.status}`);
+const parseJSONSafe = async (response: Response) => {
+    if (response.status === 204) return null;
+    const text = await response.text();
+    const trimmed = (text || '').trim();
+    if (!trimmed) return null;
+    // Strip common XSSI prefixes like )]}',\n
+    const stripped = trimmed.replace(/^\)\]\}',?\s*/, '');
+    try {
+        return JSON.parse(stripped);
+    } catch (e: any) {
+        throw new Error(`Invalid JSON from ${response.url ?? 'request'} (status ${response.status}): ${e.message}. Body starts with: ${trimmed.slice(0, 80)}`);
     }
-    return data;
+};
+
+const handleResponse = async (response: Response) => {
+    const data = await parseJSONSafe(response);
+    if (!response.ok) {
+        const message = (data && (data.message || (data.error && (data.error.message || data.error)))) || `API request failed with status ${response.status}`;
+        throw new Error(message);
+    }
+    return data as any;
 };
 
 const getAuthHeaders = () => {
@@ -211,3 +226,6 @@ export const createTransaction = (data: NewTransactionData): Promise<{transactio
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
 }).then(handleResponse);
+
+// --- AI ---
+export const fetchAIGrowthInsights = (): Promise<AIGrowthInsight[]> => fetch('/api/biz/me/growth-insights', { headers: getAuthHeaders() }).then(handleResponse);

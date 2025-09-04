@@ -1,10 +1,9 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import * as reviewService from '../services/reviewService';
 import { NewReviewData } from '../types/booking';
 
-// FIX: Use qualified express types to resolve type errors.
 export const create = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;

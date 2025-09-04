@@ -1,84 +1,44 @@
-
-import { mockBusinesses, mockBusinessSettings, mockServices, mockStaff, mockReviews, mockBookings, mockTimeOff } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module errors.
-import { PublicBusinessProfile, DayOfWeek, PublicService, PublicStaff, PublicReview } from '../../../../types';
+import { mockBusinesses, mockServices, mockStaff, mockReviews, mockBookings, mockTimeOff, mockBusinessSettings } from '../data/mockData';
+import { PublicBusinessProfile, PublicService, PublicStaff, PublicReview, Booking, DayOfWeek, Service } from '../../../../types';
 import * as dateFns from 'date-fns';
 
-const shapeBusinessProfile = (business: any): PublicBusinessProfile | null => {
-    const settings = mockBusinessSettings[business.id];
-    if (!settings || !settings.marketplace_listing.is_listed) return null;
-
-    // Correctly filter data for THIS business
-    const servicesForBusiness = mockServices; // In a real DB, this would be filtered by business ID
-    const staffForBusiness = mockStaff; // In a real DB, this would be filtered by business ID
-    const reviewsForBusiness = mockReviews.filter(r => r.status === 'Published'); // Simplified for mock
-
-    const avgRating = reviewsForBusiness.length > 0 ? reviewsForBusiness.reduce((acc, r) => acc + r.rating, 0) / reviewsForBusiness.length : 0;
-    
-    // Explicitly shape public data to avoid leaking complex objects
-    const publicServices: PublicService[] = servicesForBusiness.map(s => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        price: s.price,
-        duration_minutes: s.duration_minutes,
-    }));
-    
-    const publicStaff: PublicStaff[] = staffForBusiness.map(s => ({
-        id: s.id,
-        full_name: s.full_name,
-        role: s.role,
-        average_rating: s.average_rating,
-        review_count: s.review_count,
-    }));
-
-    const publicReviews: PublicReview[] = reviewsForBusiness.slice(0, 5).map(r => ({
-        id: r.id,
-        customer_name: r.customer_name,
-        rating: r.rating,
-        comment: r.comment,
-        created_at: r.created_at,
-    }));
-
-    const profile: PublicBusinessProfile = {
+const toPublicBusinessProfile = (business: any): PublicBusinessProfile => {
+    return {
         id: business.id,
         name: business.name,
         address: business.address,
         phone: business.phone,
-        imageUrl: settings.marketplace_listing.public_image_url,
-        services: publicServices,
-        staff: publicStaff,
-        reviews: publicReviews,
-        average_rating: avgRating,
-        review_count: reviewsForBusiness.length,
+        imageUrl: mockBusinessSettings[business.id]?.marketplace_listing.public_image_url || 'https://placehold.co/800x600/cccccc/ffffff?text=Image+Not+Available',
+        average_rating: 4.7, // MOCKED
+        review_count: 32, // MOCKED
+        services: mockServices.map(s => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            price: s.price,
+            duration_minutes: s.duration_minutes,
+        })),
+        staff: mockStaff.map(s => ({
+            id: s.id,
+            full_name: s.full_name,
+            role: s.role,
+        })),
+        reviews: mockReviews.filter(r => r.status === 'Published').map(r => ({
+            id: r.id,
+            customer_name: r.customer_name,
+            rating: r.rating,
+            comment: r.comment,
+            created_at: r.created_at,
+        })),
     };
-    return profile;
-}
+};
 
 
-export const searchBusinesses = async (params: { location?: string; service?: string }): Promise<PublicBusinessProfile[]> => {
-    // Mock search logic
-    let results = mockBusinesses.filter(b => b.verification_status === 'approved');
-    if (params.location && params.location.trim().length > 0) {
-        results = results.filter(b => b.address.toLowerCase().includes(params.location!.trim().toLowerCase()));
-    }
-    
-    if (params.service && params.service.trim().length > 0) {
-        const serviceNameQuery = params.service.trim().toLowerCase();
-        // Filter businesses that offer a matching service
-        const businessesWithService = new Set(mockServices.filter(s => s.name.toLowerCase().includes(serviceNameQuery)).flatMap(s => {
-             // This logic is simplified; in a real app, services would be linked to businesses.
-             // For now, we assume all businesses offer all services.
-            return mockBusinesses.map(b => b.id);
-        }));
-        if (businessesWithService.size === 0) return [];
-        results = results.filter(b => businessesWithService.has(b.id));
-    }
-    
-    // Enrich with details
-    return results
-        .map(shapeBusinessProfile)
-        .filter((b): b is PublicBusinessProfile => b !== null);
+export const searchBusinesses = async (params: { location?: string, service?: string }): Promise<PublicBusinessProfile[]> => {
+    // This is a mock search. In a real app, you'd query a database.
+    return mockBusinesses
+        .filter(b => b.verification_status === 'approved')
+        .map(toPublicBusinessProfile);
 };
 
 export const getBusinessById = async (id: string): Promise<PublicBusinessProfile | null> => {
@@ -86,94 +46,77 @@ export const getBusinessById = async (id: string): Promise<PublicBusinessProfile
     if (!business || business.verification_status !== 'approved') {
         return null;
     }
-    return shapeBusinessProfile(business);
+    return toPublicBusinessProfile(business);
 };
 
 export const getBusinessesByIds = async (ids: string[]): Promise<PublicBusinessProfile[]> => {
-    const businesses = await Promise.all(ids.map(id => getBusinessById(id)));
-    return businesses.filter(b => b !== null) as PublicBusinessProfile[];
+    return mockBusinesses
+        .filter(b => ids.includes(b.id) && b.verification_status === 'approved')
+        .map(toPublicBusinessProfile);
 };
 
-export const updateBusinessProfile = async (businessId: string, data: Partial<{ is_listed: boolean, imageUrl: string }>) => {
-    if (mockBusinessSettings[businessId]) {
-        if (data.is_listed !== undefined) {
-            mockBusinessSettings[businessId].marketplace_listing.is_listed = data.is_listed;
-        }
-        if (data.imageUrl) {
-            mockBusinessSettings[businessId].marketplace_listing.public_image_url = data.imageUrl;
-        }
-        return mockBusinessSettings[businessId];
-    }
-    throw new Error('Business not found');
-};
-
-const calculateSlotsForStaff = async (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
+export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
     const staff = mockStaff.find(s => s.id === staffId);
     const service = mockServices.find(s => s.id === serviceId);
-    
+
     if (!staff || !service) {
-        throw new Error('Staff or service not found');
+        throw new Error('Staff member or service not found.');
     }
-    
-    const dayOfWeek = dateFns.format(date, 'eeee').toLowerCase() as DayOfWeek;
-    const staffSchedule = staff.schedule[dayOfWeek];
-    
-    if (!staffSchedule.is_working) {
+
+    const dayOfWeek = dateFns.format(date, 'EEEE').toLowerCase() as DayOfWeek;
+    const schedule = staff.schedule[dayOfWeek];
+
+    if (!schedule.is_working) {
         return [];
     }
-    
+
+    const businessDayStart = dateFns.parse(schedule.start_time, 'HH:mm', date);
+    const businessDayEnd = dateFns.parse(schedule.end_time, 'HH:mm', date);
+
     const staffBookings = mockBookings.filter(b => b.staff.id === staffId && dateFns.isSameDay(new Date(b.start_at), date));
-    const staffTimeOff = mockTimeOff.filter(t => (t.staff_id === staffId || t.staff_id === 'all') && dateFns.isWithinInterval(date, { start: new Date(t.start_at), end: new Date(t.end_at) }));
+    const staffTimeOff = mockTimeOff.filter(t => t.staff_id === staffId || t.staff_id === 'all').filter(t => dateFns.isWithinInterval(date, { start: new Date(t.start_at), end: new Date(t.end_at) }));
 
-    const slots: string[] = [];
-    const serviceDuration = service.duration_minutes;
-    
-    let currentTime = dateFns.parse(staffSchedule.start_time, 'HH:mm', date);
-    const endTime = dateFns.parse(staffSchedule.end_time, 'HH:mm', date);
+    if (staffTimeOff.length > 0) return []; // Full day off
 
-    while (dateFns.isBefore(dateFns.addMinutes(currentTime, serviceDuration), endTime)) {
-        const slotEnd = dateFns.addMinutes(currentTime, serviceDuration);
+    const availableSlots: string[] = [];
+    let currentTime = businessDayStart;
+
+    while (dateFns.isBefore(dateFns.addMinutes(currentTime, service.duration_minutes), businessDayEnd)) {
+        const slotEnd = dateFns.addMinutes(currentTime, service.duration_minutes);
         const slotInterval = { start: currentTime, end: slotEnd };
 
-        const isBooked = staffBookings.some(b => dateFns.areIntervalsOverlapping(slotInterval, { start: new Date(b.start_at), end: new Date(b.end_at) }));
-        const isTimeOff = staffTimeOff.some(t => dateFns.areIntervalsOverlapping(slotInterval, { start: new Date(t.start_at), end: new Date(t.end_at) }));
+        const isOverlapping = staffBookings.some(booking =>
+            dateFns.areIntervalsOverlapping(
+                slotInterval,
+                { start: new Date(booking.start_at), end: new Date(booking.end_at) },
+                { inclusive: false }
+            )
+        );
 
-        if (!isBooked && !isTimeOff) {
-            slots.push(dateFns.format(currentTime, 'HH:mm'));
+        if (!isOverlapping) {
+            availableSlots.push(dateFns.format(currentTime, 'HH:mm'));
         }
-        
+
         currentTime = dateFns.addMinutes(currentTime, 15); // Check every 15 minutes
     }
     
-    return slots;
-};
-
-export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<Record<string, string[]>> => {
-    const slots = await calculateSlotsForStaff(staffId, serviceId, date);
-    const result: Record<string, string[]> = {};
-    slots.forEach(slot => {
-        result[slot] = [staffId];
-    });
-    return result;
+    return availableSlots;
 };
 
 export const getCombinedAvailability = async (serviceId: string, date: Date): Promise<Record<string, string[]>> => {
     const service = mockServices.find(s => s.id === serviceId);
-    if (!service) {
-        throw new Error('Service not found');
-    }
+    if (!service) throw new Error("Service not found");
     
     const staffForService = mockStaff.filter(s => service.staffIds.includes(s.id));
-    const availability: Record<string, string[]> = {};
+    
+    const availabilityByStaff: Record<string, string[]> = {};
 
     for (const staff of staffForService) {
-        const slots = await calculateSlotsForStaff(staff.id, serviceId, date);
-        for (const slot of slots) {
-            if (!availability[slot]) {
-                availability[slot] = [];
-            }
-            availability[slot].push(staff.id);
+        const slots = await getAvailableSlots(staff.id, serviceId, date);
+        if (slots.length > 0) {
+            availabilityByStaff[staff.id] = slots;
         }
     }
-    return availability;
+    
+    return availabilityByStaff;
 };

@@ -1,5 +1,5 @@
-// FIX: Correctly import shared types to resolve module errors.
-import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, WaitlistEntry, AdminUser, BusinessSettings, BusinessForAdmin } from '../../../../types';
+
+import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, WaitlistEntry, AdminUser, BusinessSettings, BusinessForAdmin, Transaction } from '../../../../types';
 import { CustomerUser } from '../types/customer';
 
 // --- MOCK DATABASE ---
@@ -73,7 +73,24 @@ export let mockBookings: Booking[] = [
         staff: { id: 'staff_1', full_name: 'Mike Miller' },
         business: { id: 'biz_1', name: 'The Grooming Lounge' },
         payment_status: 'paid_in_full',
+        transaction_id: 'txn_1',
     },
+];
+export let mockTransactions: Transaction[] = [
+    {
+        id: 'txn_1',
+        booking_id: 'booking_3',
+        customer_id: 'cust_1',
+        items: [
+            { id: 'serv_1', name: 'Haircut', type: 'service', quantity: 1, unit_price: 30, staffId: 'staff_1', staffName: 'Mike Miller' }
+        ],
+        subtotal: 30,
+        discount_amount: 0,
+        tax_amount: 3,
+        total: 33,
+        payment_method: 'Card',
+        created_at: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString()
+    }
 ];
 
 export let mockTimeOff: TimeOff[] = [
@@ -85,6 +102,7 @@ export let mockReviews: Review[] = [
 ];
 
 export let mockCustomerUsers: CustomerUser[] = [
+    // FIX: Initialize favoriteBusinessIds for mock customer users to satisfy type requirements.
     { id: 'cuser_1', full_name: 'John Doe', email: 'john.doe@example.com', passwordHash: 'hashed_password123', favoriteBusinessIds: ['biz_2'] }
 ];
 

@@ -1,9 +1,8 @@
-// FIX: Use default import for express to avoid type conflicts.
+
 import express from 'express';
 import * as authService from '../services/authService';
 import { CustomerLoginRequest, CustomerSignupRequest } from '../types/auth';
 
-// FIX: Use qualified express types to resolve type errors.
 export const customerLogin = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { email, password } = req.body as CustomerLoginRequest;
@@ -22,7 +21,6 @@ export const customerLogin = async (req: express.Request, res: express.Response)
     }
 };
 
-// FIX: Use qualified express types to resolve type errors.
 export const customerSignup = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { full_name, email, password } = req.body as CustomerSignupRequest;
@@ -41,7 +39,6 @@ export const customerSignup = async (req: express.Request, res: express.Response
     }
 };
 
-// FIX: Use qualified express types to resolve type errors.
 export const adminLogin = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { email, password } = req.body;

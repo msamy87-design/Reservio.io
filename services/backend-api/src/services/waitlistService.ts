@@ -1,5 +1,6 @@
+
+
 import { mockWaitlist } from '../data/mockData';
-// FIX: Correctly import shared types to resolve module error.
 import { WaitlistEntry, NewWaitlistEntryData } from '../../../../types';
 
 export const createWaitlistEntry = async (data: NewWaitlistEntryData): Promise<WaitlistEntry> => {
