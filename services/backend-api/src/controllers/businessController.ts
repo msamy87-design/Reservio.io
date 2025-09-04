@@ -1,10 +1,14 @@
 
-// FIX: Standardized express import to resolve type conflicts.
+
+
+
+
+
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const search = async (req: Request, res: Response): Promise<void> => {
     try {
         const { location, service } = req.query;
@@ -27,7 +31,7 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -46,7 +50,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const getAvailability = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id: businessId } = req.params;
@@ -57,9 +61,13 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
             return;
         }
 
-        const availableSlots = await businessService.getAvailableSlots(staffId as string, serviceId as string, new Date(date as string));
-
-        res.status(200).json(availableSlots);
+        if (staffId === 'any') {
+             const availableSlots = await businessService.getCombinedAvailability(serviceId as string, new Date(date as string));
+             res.status(200).json(availableSlots);
+        } else {
+             const availableSlots = await businessService.getAvailableSlots(staffId as string, serviceId as string, new Date(date as string));
+             res.status(200).json(availableSlots);
+        }
 
     } catch (error) {
         console.error('Error getting availability:', error);

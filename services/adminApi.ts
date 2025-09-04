@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+
 
 import { AdminUser, PlatformStats, BusinessForAdmin, BusinessVerificationStatus } from '../types';
 import { API_BASE_URL } from '../utils/env';

@@ -1,11 +1,15 @@
 
-// FIX: Standardized express import to resolve type conflicts.
+
+
+
+
+// FIX: Use named import for Response type.
 import { Response } from 'express';
 import * as customerService from '../services/customerService';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 
-// FIX: Explicitly typed Response to resolve property access errors.
+// FIX: Use named Response type to resolve type errors.
 export const getMyBookings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;

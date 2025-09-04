@@ -1,5 +1,5 @@
 
-import { mockBookings } from '../data/mockData';
+import { mockBookings, mockReviews } from '../data/mockData';
 import { Booking } from '../types/booking';
 
 /**
@@ -11,7 +11,11 @@ export const getBookingsByCustomerId = async (customerId: string): Promise<Booki
     return new Promise(resolve => {
         setTimeout(() => {
             const customerBookings = mockBookings.filter(b => b.customer.id === customerId);
-            resolve(customerBookings);
+            const augmentedBookings = customerBookings.map(b => ({
+                ...b,
+                review_submitted: mockReviews.some(r => r.booking_id === b.id)
+            }));
+            resolve(augmentedBookings);
         }, 500);
     });
 };

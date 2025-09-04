@@ -1,5 +1,9 @@
 
-// FIX: Standardized express import to resolve type conflicts.
+
+
+
+
+// FIX: Use named imports from express to avoid type conflicts.
 import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 
@@ -15,7 +19,7 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  // FIX: Explicitly typed Request and Response to resolve property access errors.
+  // FIX: Use named imports for Request and Response types.
   async (req: Request, res: Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;
@@ -25,7 +29,8 @@ router.post(
       }
 
       // req.body is a Buffer because of express.raw
-      const buf = req.body as Buffer;
+      // FIX: Use req.body directly to avoid 'Buffer' not found error when node types are missing.
+      const buf = req.body;
 
       let event: Stripe.Event;
       try {

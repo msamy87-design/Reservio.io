@@ -59,6 +59,7 @@ export interface Booking {
   };
   payment_status?: PaymentStatus;
   payment_intent_id?: string | null;
+  review_submitted?: boolean;
 }
 
 export interface NewPublicCustomerData {
@@ -99,6 +100,15 @@ export interface Review {
   comment: string;
   status: ReviewStatus;
   created_at: string;
+}
+
+export interface NewReviewData {
+  booking_id: string;
+  customer_id: string;
+  service_id: string;
+  staff_id: string;
+  rating: number;
+  comment: string;
 }
 
 export interface CustomerUser {

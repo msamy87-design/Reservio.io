@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+
 
 import { PublicCustomerUser, Booking, NewReviewData, Review } from '../types';
 import { API_BASE_URL } from '../utils/env';

@@ -17,6 +17,7 @@ interface BookingModalProps {
 }
 
 type BookingStep = 'staff' | 'dateTime' | 'details' | 'payment' | 'confirmation';
+type AnyStaff = { id: 'any'; full_name: string; role: 'Stylist' };
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, business }) => {
     const { currentCustomer } = useCustomerAuth();
@@ -24,9 +25,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
 
     const [step, setStep] = useState<BookingStep>('staff');
     const [selectedStaff, setSelectedStaff] = useState<PublicStaff | null>(null);
+    const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+    const [availableTimes, setAvailableTimes] = useState<Record<string, string[]>>({});
     const [isLoadingTimes, setIsLoadingTimes] = useState(false);
     
     const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
@@ -45,8 +47,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     useEffect(() => {
         if (isOpen) {
             // Reset state when modal opens
-            setStep(business.staff.length === 1 ? 'dateTime' : 'staff');
-            setSelectedStaff(business.staff.length === 1 ? business.staff[0] : null);
+            if (business.staff.length === 1) {
+                setStep('dateTime');
+                setSelectedStaff(business.staff[0]);
+                setSelectedStaffId(business.staff[0].id);
+            } else {
+                setStep('staff');
+                setSelectedStaff(null);
+                setSelectedStaffId(null);
+            }
             setSelectedDate(new Date());
             setSelectedTime(null);
             setClientSecret(null);
@@ -55,22 +64,22 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
 
     useEffect(() => {
         const fetchTimes = async () => {
-            if (selectedStaff && selectedDate) {
+            if (selectedStaffId && selectedDate) {
                 setIsLoadingTimes(true);
                 setSelectedTime(null);
                 try {
-                    const times = await getAvailability(business.id, service.id, selectedStaff.id, dateFns.format(selectedDate, 'yyyy-MM-dd'));
+                    const times = await getAvailability(business.id, service.id, selectedStaffId, dateFns.format(selectedDate, 'yyyy-MM-dd'));
                     setAvailableTimes(times);
                 } catch (error) {
                     console.error("Failed to fetch availability", error);
-                    setAvailableTimes([]);
+                    setAvailableTimes({});
                 } finally {
                     setIsLoadingTimes(false);
                 }
             }
         };
         fetchTimes();
-    }, [selectedStaff, selectedDate, business.id, service.id]);
+    }, [selectedStaffId, selectedDate, business.id, service.id]);
     
     const weekDays = useMemo(() => {
         const start = dateFns.startOfWeek(selectedDate);
@@ -113,6 +122,35 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
         }
     };
     
+    const handleStaffSelect = (staff: PublicStaff | AnyStaff) => {
+        setSelectedStaffId(staff.id);
+        if (staff.id === 'any') {
+            setSelectedStaff(null);
+        } else {
+            setSelectedStaff(staff as PublicStaff);
+        }
+        setStep('dateTime');
+    };
+
+    const handleTimeSelect = (timeSlot: string) => {
+        setSelectedTime(timeSlot);
+
+        if (selectedStaffId === 'any') {
+            const availableStaffIds = availableTimes[timeSlot];
+            if (availableStaffIds && availableStaffIds.length > 0) {
+                const assignedStaff = business.staff.find(s => s.id === availableStaffIds[0]);
+                if (assignedStaff) {
+                    setSelectedStaff(assignedStaff);
+                }
+            }
+        }
+    };
+    
+    const staffOptions: (PublicStaff | AnyStaff)[] = [
+        { id: 'any', full_name: 'Any Available Professional', role: 'Stylist' },
+        ...business.staff
+    ];
+
     const renderStep = () => {
         switch(step) {
             case 'staff':
@@ -120,10 +158,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                     <div>
                         <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-4">Select a Staff Member</h3>
                         <div className="space-y-2">
-                            {business.staff.map(staff => (
-                                <button key={staff.id} onClick={() => { setSelectedStaff(staff); setStep('dateTime'); }} className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600">
+                            {staffOptions.map(staff => (
+                                <button key={staff.id} onClick={() => handleStaffSelect(staff)} className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600">
                                     <p className="font-semibold">{staff.full_name}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{staff.role}</p>
+                                    {staff.id !== 'any' && <p className="text-xs text-gray-500 dark:text-gray-400">{staff.role}</p>}
                                 </button>
                             ))}
                         </div>
@@ -149,8 +187,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                         </div>
                         {/* Time Picker */}
                         <div className="max-h-48 overflow-y-auto grid grid-cols-3 gap-2">
-                            {isLoadingTimes ? <p>Loading times...</p> : availableTimes.map(timeSlot => (
-                                <button key={timeSlot} onClick={() => setSelectedTime(timeSlot)} className={`p-2 rounded-md text-sm ${selectedTime === timeSlot ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+                            {isLoadingTimes ? <p>Loading times...</p> : Object.keys(availableTimes).length === 0 ? <p className="col-span-3 text-center text-sm text-gray-500">No available times.</p> : Object.keys(availableTimes).sort().map(timeSlot => (
+                                <button key={timeSlot} onClick={() => handleTimeSelect(timeSlot)} className={`p-2 rounded-md text-sm ${selectedTime === timeSlot ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
                                     {timeSlot}
                                 </button>
                             ))}
@@ -204,7 +242,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     };
 
     const isNextDisabled = 
-        (step === 'staff' && !selectedStaff) ||
+        (step === 'staff' && !selectedStaffId) ||
         (step === 'dateTime' && !selectedTime) ||
         (step === 'details' && (!customerDetails.name || !customerDetails.email || !customerDetails.phone));
 
@@ -218,7 +256,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                     <div className="mt-2 flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2"><CalendarDaysIcon className="h-4 w-4" /><span>{selectedDate ? dateFns.format(selectedDate, 'EEE, MMM d') : '...'}</span></div>
                         <div className="flex items-center gap-2"><ClockIcon className="h-4 w-4" /><span>{selectedTime || '...'}</span></div>
-                        <div className="flex items-center gap-2"><UserCircleIcon className="h-4 w-4" /><span>{selectedStaff?.full_name || '...'}</span></div>
+                        <div className="flex items-center gap-2"><UserCircleIcon className="h-4 w-4" /><span>{selectedStaff?.full_name || (selectedStaffId === 'any' ? 'Any Available' : '...')}</span></div>
                         <div className="font-bold text-lg">${service.price.toFixed(2)}</div>
                     </div>
                 </div>
@@ -231,7 +269,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                 {/* Footer */}
                 {step !== 'confirmation' && (
                     <div className="mt-6 flex justify-between items-center">
-                        <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && business.staff.length === 1)} className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
+                        <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && business.staff.length <= 1)} className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
                             Back
                         </button>
                         <button onClick={handleNextStep} disabled={isNextDisabled} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800">

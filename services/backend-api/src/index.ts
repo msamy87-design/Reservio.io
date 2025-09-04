@@ -1,4 +1,7 @@
 
+
+
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -38,7 +41,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // --- Routes ---
-// FIX: Explicitly typed Request and Response to resolve method errors.
+// FIX: Use named imports for Request and Response types.
 app.get('/api', (req: Request, res: Response) => {
   res.send('Reservio API is running!');
 });

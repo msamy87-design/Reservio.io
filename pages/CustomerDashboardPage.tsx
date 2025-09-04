@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
-import { getMyBookings, cancelMyBooking } from '../services/customerApi';
-import { Booking } from '../types';
+import { getMyBookings, cancelMyBooking, submitReview } from '../services/customerApi';
+import { Booking, NewReviewData } from '../types';
 import MarketplaceHeader from '../components/MarketplaceHeader';
 import { useToast } from '../contexts/ToastContext';
+import ReviewFormModal from '../components/ReviewFormModal';
 
 type ActiveTab = 'upcoming' | 'past';
 
@@ -14,6 +15,9 @@ const CustomerDashboardPage: React.FC = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<ActiveTab>('upcoming');
+
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -41,6 +45,36 @@ const CustomerDashboardPage: React.FC = () => {
             addToast('Appointment cancelled successfully.', 'success');
         } catch (error) {
              addToast('Failed to cancel appointment.', 'error');
+        }
+    };
+
+    const handleOpenReviewModal = (booking: Booking) => {
+        setBookingToReview(booking);
+        setIsReviewModalOpen(true);
+    };
+
+    const handleReviewSubmit = async (data: { rating: number; comment: string }) => {
+        if (!bookingToReview || !customerToken || !currentCustomer) return;
+
+        const reviewData: NewReviewData = {
+            booking_id: bookingToReview.id,
+            customer_id: currentCustomer.id,
+            service_id: bookingToReview.service.id,
+            staff_id: bookingToReview.staff.id,
+            rating: data.rating,
+            comment: data.comment,
+        };
+        
+        try {
+            await submitReview(reviewData, customerToken);
+            addToast('Thank you for your review!', 'success');
+            // Update local state to hide the review button
+            setBookings(bookings.map(b => b.id === bookingToReview.id ? { ...b, review_submitted: true } : b));
+            setIsReviewModalOpen(false);
+            setBookingToReview(null);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Could not submit your review.';
+            addToast(message, 'error');
         }
     };
 
@@ -100,6 +134,11 @@ const CustomerDashboardPage: React.FC = () => {
                                                     Cancel
                                                 </button>
                                             )}
+                                            {activeTab === 'past' && booking.status === 'completed' && !booking.review_submitted && (
+                                                <button onClick={() => handleOpenReviewModal(booking)} className="text-sm font-medium text-indigo-600 hover:underline">
+                                                    Leave a Review
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -108,6 +147,14 @@ const CustomerDashboardPage: React.FC = () => {
                     </div>
                 </div>
             </main>
+            {isReviewModalOpen && bookingToReview && (
+                 <ReviewFormModal
+                    isOpen={isReviewModalOpen}
+                    onClose={() => setIsReviewModalOpen(false)}
+                    booking={bookingToReview}
+                    onSubmit={handleReviewSubmit}
+                />
+            )}
         </div>
     );
 };

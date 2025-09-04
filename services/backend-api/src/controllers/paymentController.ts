@@ -1,9 +1,13 @@
 
-// FIX: Standardized express import to resolve type conflicts.
+
+
+
+
+// FIX: Use named imports from express to avoid type conflicts.
 import { Request, Response } from 'express';
 import * as paymentService from '../services/paymentService';
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const { serviceId } = req.body;

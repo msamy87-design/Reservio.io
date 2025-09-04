@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+
 
 import { PublicBusinessProfile, NewPublicBookingData, Booking } from '../types';
 import { API_BASE_URL } from '../utils/env';
@@ -25,7 +25,7 @@ export const getBusinessById = async (id: string): Promise<PublicBusinessProfile
     return handleResponse(response);
 };
 
-export const getAvailability = async (businessId: string, serviceId: string, staffId: string, date: string): Promise<string[]> => {
+export const getAvailability = async (businessId: string, serviceId: string, staffId: string, date: string): Promise<Record<string, string[]>> => {
     const queryParams = new URLSearchParams({ serviceId, staffId, date });
     const response = await fetch(`${API_BASE_URL}/businesses/${businessId}/availability?${queryParams.toString()}`);
     return handleResponse(response);

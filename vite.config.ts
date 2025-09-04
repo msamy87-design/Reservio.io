@@ -15,7 +15,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '.'),
+      // FIX: Use path.resolve() which defaults to process.cwd() to fix __dirname error.
+      '@': path.resolve(),
     },
   },
 });

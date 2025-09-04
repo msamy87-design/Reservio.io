@@ -70,7 +70,9 @@ export const getBusinessById = async (id: string): Promise<PublicBusinessProfile
                 ...business,
                 services: mockServices.map(({currency, staffIds, average_rating, review_count, ...s}) => s),
                 staff: mockStaff.map(({email, phone, schedule, average_rating, review_count, ...s}) => s),
-                reviews: mockReviews.map(({booking_id, customer_id, service_id, staff_id, status, ...r}) => r),
+                reviews: mockReviews
+                    .filter(r => r.status === 'Published')
+                    .map(({booking_id, customer_id, service_id, staff_id, status, ...r}) => r),
             };
             resolve(businessProfile);
         }, 300);
@@ -95,75 +97,112 @@ export const updateBusinessProfile = async (id: string, data: Partial<{ is_liste
     });
 };
 
-export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
+const calculateSlotsForStaff = (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const staff = mockStaff.find(s => s.id === staffId);
-            const service = mockServices.find(s => s.id === serviceId);
+        const staff = mockStaff.find(s => s.id === staffId);
+        const service = mockServices.find(s => s.id === serviceId);
 
-            if (!staff || !service) {
-                return reject(new Error('Staff or Service not found.'));
+        if (!staff || !service) {
+            return reject(new Error('Staff or Service not found.'));
+        }
+
+        const dayOfWeek = dateFns.format(date, 'eeee').toLowerCase() as keyof StaffSchedule;
+        const staffDaySchedule = staff.schedule[dayOfWeek];
+
+        if (!staffDaySchedule.is_working) {
+            return resolve([]);
+        }
+
+        const availableSlots: string[] = [];
+        const interval = 15; // 15-minute intervals
+        const serviceDuration = service.duration_minutes;
+
+        const dayStart = dateFns.parse(staffDaySchedule.start_time, 'HH:mm', date);
+        const dayEnd = dateFns.parse(staffDaySchedule.end_time, 'HH:mm', date);
+        
+        let currentTime = dayStart;
+        
+        while (dateFns.addMinutes(currentTime, serviceDuration) <= dayEnd) {
+            const slotEnd = dateFns.addMinutes(currentTime, serviceDuration);
+            let isSlotAvailable = true;
+
+            // Check against existing bookings
+            const staffBookingsOnDate = mockBookings.filter(b => 
+                b.staff.id === staffId && 
+                dateFns.isSameDay(new Date(b.start_at), date) &&
+                b.status === 'confirmed'
+            );
+
+            for (const booking of staffBookingsOnDate) {
+                const bookingStart = new Date(booking.start_at);
+                const bookingEnd = new Date(booking.end_at);
+                if (dateFns.areIntervalsOverlapping({ start: currentTime, end: slotEnd }, { start: bookingStart, end: bookingEnd })) {
+                    isSlotAvailable = false;
+                    break;
+                }
             }
-
-            const dayOfWeek = dateFns.format(date, 'eeee').toLowerCase() as keyof StaffSchedule;
-            const staffDaySchedule = staff.schedule[dayOfWeek];
-
-            if (!staffDaySchedule.is_working) {
-                return resolve([]);
-            }
-
-            const availableSlots: string[] = [];
-            const interval = 15; // 15-minute intervals
-            const serviceDuration = service.duration_minutes;
-
-            const dayStart = dateFns.parse(staffDaySchedule.start_time, 'HH:mm', date);
-            const dayEnd = dateFns.parse(staffDaySchedule.end_time, 'HH:mm', date);
-            
-            let currentTime = dayStart;
-            
-            while (dateFns.addMinutes(currentTime, serviceDuration) <= dayEnd) {
-                const slotEnd = dateFns.addMinutes(currentTime, serviceDuration);
-                let isSlotAvailable = true;
-
-                // Check against existing bookings
-                const staffBookingsOnDate = mockBookings.filter(b => 
-                    b.staff.id === staffId && 
-                    dateFns.isSameDay(new Date(b.start_at), date) &&
-                    b.status === 'confirmed'
-                );
-
-                for (const booking of staffBookingsOnDate) {
-                    const bookingStart = new Date(booking.start_at);
-                    const bookingEnd = new Date(booking.end_at);
-                    if (dateFns.areIntervalsOverlapping({ start: currentTime, end: slotEnd }, { start: bookingStart, end: bookingEnd })) {
-                        isSlotAvailable = false;
-                        break;
-                    }
-                }
-                if (!isSlotAvailable) {
-                    currentTime = dateFns.addMinutes(currentTime, interval);
-                    continue;
-                }
-
-                // Check against time off
-                const staffTimeOff = mockTimeOff.filter(t => (t.staff_id === staffId || t.staff_id === 'all'));
-                 for (const off of staffTimeOff) {
-                    const offStart = new Date(off.start_at);
-                    const offEnd = new Date(off.end_at);
-                    if (dateFns.areIntervalsOverlapping({ start: currentTime, end: slotEnd }, { start: offStart, end: offEnd })) {
-                        isSlotAvailable = false;
-                        break;
-                    }
-                }
-                
-                if (isSlotAvailable) {
-                    availableSlots.push(dateFns.format(currentTime, 'HH:mm'));
-                }
-
+            if (!isSlotAvailable) {
                 currentTime = dateFns.addMinutes(currentTime, interval);
+                continue;
+            }
+
+            // Check against time off
+            const staffTimeOff = mockTimeOff.filter(t => (t.staff_id === staffId || t.staff_id === 'all'));
+             for (const off of staffTimeOff) {
+                const offStart = new Date(off.start_at);
+                const offEnd = new Date(off.end_at);
+                if (dateFns.areIntervalsOverlapping({ start: currentTime, end: slotEnd }, { start: offStart, end: offEnd })) {
+                    isSlotAvailable = false;
+                    break;
+                }
             }
             
-            resolve(availableSlots);
-        }, 400);
+            if (isSlotAvailable) {
+                availableSlots.push(dateFns.format(currentTime, 'HH:mm'));
+            }
+
+            currentTime = dateFns.addMinutes(currentTime, interval);
+        }
+        
+        resolve(availableSlots);
     });
+};
+
+
+export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<Record<string, string[]>> => {
+    const slots = await calculateSlotsForStaff(staffId, serviceId, date);
+    const result: Record<string, string[]> = {};
+    slots.forEach(time => {
+        result[time] = [staffId];
+    });
+    return result;
+};
+
+
+export const getCombinedAvailability = async (serviceId: string, date: Date): Promise<Record<string, string[]>> => {
+    const service = mockServices.find(s => s.id === serviceId);
+    if (!service) {
+        throw new Error('Service not found.');
+    }
+
+    const qualifiedStaffIds = service.staffIds.length > 0 ? service.staffIds : mockStaff.map(s => s.id);
+
+    const allSlotsPromises = qualifiedStaffIds.map(staffId => 
+        calculateSlotsForStaff(staffId, serviceId, date).then(slots => ({ staffId, slots }))
+    );
+
+    const staffSlotsArray = await Promise.all(allSlotsPromises);
+
+    const combinedSlots: Record<string, string[]> = {};
+
+    staffSlotsArray.forEach(({ staffId, slots }) => {
+        slots.forEach(time => {
+            if (!combinedSlots[time]) {
+                combinedSlots[time] = [];
+            }
+            combinedSlots[time].push(staffId);
+        });
+    });
+
+    return combinedSlots;
 };

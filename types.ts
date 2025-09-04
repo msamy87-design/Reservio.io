@@ -166,6 +166,7 @@ export interface Booking {
   transaction_id?: string | null;
   payment_status?: PaymentStatus;
   payment_intent_id?: string | null;
+  review_submitted?: boolean;
 }
 
 export interface NewBookingData {

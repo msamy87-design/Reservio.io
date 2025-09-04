@@ -1,10 +1,14 @@
 
-// FIX: Standardized express import to resolve type conflicts.
+
+
+
+
+// FIX: Use named imports from express to avoid type conflicts.
 import { Request, Response } from 'express';
 import * as adminService from '../services/adminService';
 import { BusinessVerificationStatus } from '../../../../types';
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const getStats = async (req: Request, res: Response): Promise<void> => {
     try {
         const stats = await adminService.getPlatformStats();
@@ -14,7 +18,7 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const getBusinesses = async (req: Request, res: Response): Promise<void> => {
     try {
         const businesses = await adminService.getAllBusinesses();
@@ -24,7 +28,7 @@ export const getBusinesses = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// FIX: Explicitly typed Request and Response to resolve property access errors.
+// FIX: Use named imports for Request and Response types.
 export const updateBusinessStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
