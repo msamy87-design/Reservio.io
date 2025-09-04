@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Booking, BookingStatus } from '../types';
@@ -20,6 +19,12 @@ const statusColors: Record<BookingStatus, string> = {
   pending: 'text-yellow-600 dark:text-yellow-400',
 };
 
+const getRiskInfo = (score: number | undefined | null) => {
+    if (score === null || score === undefined) return null;
+    if (score >= 7) return { label: 'High', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/50' };
+    if (score >= 4) return { label: 'Medium', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/50' };
+    return { label: 'Low', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/50' };
+}
 
 const BookingDetailsPopover: React.FC<BookingDetailsPopoverProps> = ({
   booking,
@@ -77,6 +82,8 @@ const BookingDetailsPopover: React.FC<BookingDetailsPopoverProps> = ({
     onClose();
   };
 
+  const riskInfo = getRiskInfo(booking.noShowRiskScore);
+
   return ReactDOM.createPortal(
     <div
       ref={popoverRef}
@@ -111,6 +118,14 @@ const BookingDetailsPopover: React.FC<BookingDetailsPopoverProps> = ({
                          ))}
                     </select>
                 </div>
+                {riskInfo && (
+                    <div>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">AI No-Show Risk</p>
+                        <p className={`text-sm font-medium ${riskInfo.color}`}>
+                            {riskInfo.label} ({booking.noShowRiskScore}/10)
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">

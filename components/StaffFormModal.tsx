@@ -23,6 +23,7 @@ const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<Staff['role']>('Stylist');
+  const [skills, setSkills] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
@@ -38,11 +39,13 @@ const StaffFormModal: React.FC<StaffFormModalProps> = ({
         setEmail(initialStaffData.email);
         setPhone(initialStaffData.phone);
         setRole(initialStaffData.role);
+        setSkills(initialStaffData.skills || []);
       } else {
         setFullName('');
         setEmail('');
         setPhone('');
         setRole('Stylist');
+        setSkills([]);
       }
     }
   }, [initialStaffData, isOpen]);
@@ -57,6 +60,7 @@ const StaffFormModal: React.FC<StaffFormModalProps> = ({
       email,
       phone,
       role,
+      skills,
     }, initialStaffData?.id);
     setIsSubmitting(false);
   };
@@ -114,6 +118,24 @@ const StaffFormModal: React.FC<StaffFormModalProps> = ({
           >
             {roles.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
+        </div>
+        <div>
+            <label htmlFor="staffSkills" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Skills</label>
+            <input
+                id="staffSkills"
+                type="text"
+                value={skills.join(', ')}
+                onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="e.g., haircut, coloring, shave"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+                {skills.filter(s => s).map(skill => (
+                <span key={skill} className="px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full dark:bg-indigo-900 dark:text-indigo-200">
+                    {skill}
+                </span>
+                ))}
+            </div>
         </div>
         
         <div className="pt-2 flex justify-between items-center">

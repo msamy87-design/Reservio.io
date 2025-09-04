@@ -308,3 +308,9 @@ export const SquaresPlusIcon: React.FC<IconProps> = (props) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m3-3l-3 3m0 0v4.5m0-4.5h4.5m0 0l-3 3m0 0l3 3m-3-3v4.5m0 0h4.5m4.5-4.5v4.5m0-4.5h-4.5m4.5 0l-3 3m3-3l-3-3m3 3h-4.5m-4.5 4.5v-4.5m0 4.5h-4.5m4.5 0L9 15m-3 3l3-3m0 0v-4.5m0 4.5h-4.5m0 0l3-3m-3 3l-3-3m3 3h-4.5" />
     </svg>
 );
+
+export const ExclamationTriangleIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  </svg>
+);

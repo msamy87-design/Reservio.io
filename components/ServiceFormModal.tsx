@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Modal from './Modal';
 import { Service, NewServiceData, Staff } from '../types';
 import { TrashIcon } from './Icons';
@@ -13,6 +13,9 @@ interface ServiceFormModalProps {
   staff: Staff[];
 }
 
+const PREDEFINED_SKILLS = ['haircut', 'coloring', 'shave', 'beard-trim', 'manicure', 'pedicure', 'facial'];
+
+
 const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   isOpen,
   onClose,
@@ -25,6 +28,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState(30);
   const [price, setPrice] = useState(0);
+  const [requiredSkill, setRequiredSkill] = useState<string>('');
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -41,12 +45,14 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
         setDuration(initialServiceData.duration_minutes);
         setPrice(initialServiceData.price);
         setSelectedStaffIds(initialServiceData.staffIds || []);
+        setRequiredSkill(initialServiceData.required_skill || '');
       } else {
         setName('');
         setDescription('');
         setDuration(30);
         setPrice(0);
         setSelectedStaffIds([]);
+        setRequiredSkill('');
       }
     }
   }, [initialServiceData, isOpen]);
@@ -70,6 +76,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
       duration_minutes: duration,
       price,
       staffIds: selectedStaffIds,
+      required_skill: requiredSkill
     }, initialServiceData?.id);
     setIsSubmitting(false);
   };
@@ -79,6 +86,14 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
     setIsSubmitting(true);
     await onDelete(initialServiceData.id);
   };
+
+  const availableStaffForService = useMemo(() => {
+    if (!requiredSkill) {
+        return staff;
+    }
+    return staff.filter(s => s.skills?.includes(requiredSkill));
+  }, [staff, requiredSkill]);
+
 
   const isFormValid = name.trim() !== '' && duration > 0 && price >= 0;
 
@@ -133,10 +148,31 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
             />
           </div>
         </div>
+         <div>
+          <label htmlFor="requiredSkill" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Required Skill</label>
+          <select
+            id="requiredSkill"
+            value={requiredSkill}
+            onChange={(e) => {
+                setRequiredSkill(e.target.value);
+                // Unselect staff who don't have the new skill
+                setSelectedStaffIds(prev => prev.filter(staffId => {
+                    const staffMember = staff.find(s => s.id === staffId);
+                    return staffMember?.skills?.includes(e.target.value);
+                }));
+            }}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          >
+            <option value="">None</option>
+            {PREDEFINED_SKILLS.map(skill => (
+              <option key={skill} value={skill}>{skill.charAt(0).toUpperCase() + skill.slice(1)}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Assigned Staff</label>
           <div className="mt-2 space-y-2 border border-gray-300 dark:border-gray-600 rounded-md p-3 max-h-40 overflow-y-auto">
-            {staff.map(s => (
+            {availableStaffForService.map(s => (
               <div key={s.id} className="flex items-center">
                 <input
                   id={`staff-${s.id}`}
@@ -148,6 +184,9 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({
                 <label htmlFor={`staff-${s.id}`} className="ml-3 text-sm text-gray-700 dark:text-gray-300">{s.full_name}</label>
               </div>
             ))}
+            {availableStaffForService.length === 0 && (
+                <p className="text-sm text-gray-500">No staff members have the selected required skill.</p>
+            )}
           </div>
         </div>
         <div className="pt-2 flex justify-between items-center">

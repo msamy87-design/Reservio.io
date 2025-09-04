@@ -21,7 +21,7 @@ export interface AdminUser {
 }
 
 export interface PublicCustomerUser {
-    id: string;
+    id:string;
     full_name: string;
     email: string;
     favoriteBusinessIds: string[];
@@ -121,6 +121,7 @@ export interface Staff {
   phone: string;
   role: 'Owner' | 'Manager' | 'Assistant' | 'Stylist';
   schedule: StaffSchedule;
+  skills: string[];
   average_rating: number;
   review_count: number;
 }
@@ -135,6 +136,7 @@ export interface Service {
   currency: Currency;
   duration_minutes: number;
   staffIds: string[];
+  required_skill?: string;
   average_rating: number;
   review_count: number;
 }

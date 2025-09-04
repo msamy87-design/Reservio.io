@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Modal from './Modal';
 import { Customer, Service, Booking, Staff, StaffSchedule, TimeOff } from '../types';
@@ -17,6 +16,13 @@ interface BookingFormModalProps {
   staff: Staff[];
   bookings: Booking[];
   timeOff: TimeOff[];
+}
+
+const getRiskInfo = (score: number | undefined | null) => {
+    if (score === null || score === undefined) return null;
+    if (score >= 7) return { label: 'High', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/50' };
+    if (score >= 4) return { label: 'Medium', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/50' };
+    return { label: 'Low', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/50' };
 }
 
 const BookingFormModal: React.FC<BookingFormModalProps> = ({
@@ -40,6 +46,8 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceRule, setRecurrenceRule] = useState<'weekly' | 'monthly'>('weekly');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
+  const [noShowRiskScore, setNoShowRiskScore] = useState<number | null>(null);
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -59,6 +67,7 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({
             setDate(startDate.toISOString().split('T')[0]);
             setTime(startDate.toTimeString().substring(0, 5));
             setIsRecurring(!!initialBookingData.recurrence_rule);
+            setNoShowRiskScore(initialBookingData.noShowRiskScore ?? null);
         } else if (initialDate) {
             const selected = initialDate;
             setDate(selected.toISOString().split('T')[0]);
@@ -72,26 +81,45 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({
             const nextMonth = new Date(selected);
             nextMonth.setMonth(nextMonth.getMonth() + 1);
             setRecurrenceEndDate(nextMonth.toISOString().split('T')[0]);
+            setNoShowRiskScore(null);
         }
     }
   }, [initialBookingData, initialDate, isOpen]);
   
   const availableStaff = useMemo(() => {
     if (!serviceId) {
-        return staff;
+        return [];
     }
     const selectedService = services.find(s => s.id === serviceId);
-    if (!selectedService || !selectedService.staffIds || selectedService.staffIds.length === 0) {
-        return staff; // Fallback to all staff if service has no specific staff assigned
+    if (!selectedService) {
+        return [];
     }
-    return staff.filter(s => selectedService.staffIds.includes(s.id));
+
+    // Filter by required skill first
+    let skilledStaff = staff;
+    if (selectedService.required_skill) {
+        skilledStaff = staff.filter(s => s.skills?.includes(selectedService.required_skill!));
+    }
+
+    // Then, if the service has specific staff assigned, filter by that list
+    if (selectedService.staffIds && selectedService.staffIds.length > 0) {
+        return skilledStaff.filter(s => selectedService.staffIds.includes(s.id));
+    }
+
+    return skilledStaff; // Otherwise, return all skilled staff
   }, [serviceId, services, staff]);
 
   const handleServiceChange = (newServiceId: string) => {
     setServiceId(newServiceId);
     const selectedService = services.find(s => s.id === newServiceId);
-    if (staffId && selectedService?.staffIds && selectedService.staffIds.length > 0 && !selectedService.staffIds.includes(staffId)) {
-      setStaffId('');
+    const currentStaff = staff.find(s => s.id === staffId);
+
+    if (staffId && selectedService && currentStaff) {
+        const isAssigned = !selectedService.staffIds || selectedService.staffIds.length === 0 || selectedService.staffIds.includes(staffId);
+        const hasSkill = !selectedService.required_skill || currentStaff.skills?.includes(selectedService.required_skill);
+        if (!isAssigned || !hasSkill) {
+            setStaffId('');
+        }
     }
   };
 
@@ -185,6 +213,7 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({
   }
 
   const isFormValid = customerId && serviceId && staffId && date && time && (!isRecurring || recurrenceEndDate);
+  const riskInfo = getRiskInfo(noShowRiskScore);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Edit Booking" : "New Booking"}>
@@ -281,6 +310,19 @@ const BookingFormModal: React.FC<BookingFormModalProps> = ({
               </div>
             )}
           </div>
+        )}
+        {isEditMode && riskInfo && (
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">AI No-Show Risk</label>
+                <div className="mt-1 flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${riskInfo.bg} ${riskInfo.color}`}>
+                        {riskInfo.label} ({noShowRiskScore}/10)
+                    </span>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Score determined at time of booking.
+                    </p>
+                </div>
+            </div>
         )}
         <div className="pt-2 flex justify-between items-center">
             <div className="min-h-[38px]">

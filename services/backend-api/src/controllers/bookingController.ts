@@ -1,10 +1,12 @@
 
+
 import express from 'express';
 import * as bookingService from '../services/bookingService';
 import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
-export const create = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
+// FIX: Change request type to express.Request as this is a public endpoint and does not contain authenticated user data.
+export const create = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
 

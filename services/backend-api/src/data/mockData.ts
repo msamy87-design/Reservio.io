@@ -1,5 +1,6 @@
 
-import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, WaitlistEntry, AdminUser, BusinessSettings, BusinessForAdmin, Transaction } from '../../../../types';
+
+import { Booking, Customer, Service, Staff, StaffSchedule, TimeOff, Review, WaitlistEntry, AdminUser, BusinessSettings, BusinessForAdmin, Transaction, Product } from '../../../../types';
 import { CustomerUser } from '../types/customer';
 
 // --- MOCK DATABASE ---
@@ -28,16 +29,16 @@ export let mockCustomers: Customer[] = [
 ];
 
 export let mockServices: Service[] = [
-  { id: 'serv_1', name: 'Haircut', description: 'Standard men\'s haircut', price: 30, currency: 'USD', duration_minutes: 30, staffIds: ['staff_1', 'staff_2'], average_rating: 4.8, review_count: 15 },
-  { id: 'serv_2', name: 'Beard Trim', description: 'Shape and trim beard', price: 15, currency: 'USD', duration_minutes: 15, staffIds: ['staff_1', 'staff_2', 'staff_3'], average_rating: 4.5, review_count: 12 },
-  { id: 'serv_3', name: 'Deluxe Shave', description: 'Hot towel shave', price: 45, currency: 'USD', duration_minutes: 45, staffIds: ['staff_2'], average_rating: 5.0, review_count: 8 },
-  { id: 'serv_4', name: 'Coloring', description: 'Full hair coloring', price: 75, currency: 'USD', duration_minutes: 90, staffIds: ['staff_1'], average_rating: 4.2, review_count: 5 },
+  { id: 'serv_1', name: 'Haircut', description: 'Standard men\'s haircut', price: 30, currency: 'USD', duration_minutes: 30, staffIds: ['staff_1', 'staff_2'], required_skill: 'haircut', average_rating: 4.8, review_count: 15 },
+  { id: 'serv_2', name: 'Beard Trim', description: 'Shape and trim beard', price: 15, currency: 'USD', duration_minutes: 15, staffIds: ['staff_1', 'staff_2', 'staff_3'], required_skill: 'beard-trim', average_rating: 4.5, review_count: 12 },
+  { id: 'serv_3', name: 'Deluxe Shave', description: 'Hot towel shave', price: 45, currency: 'USD', duration_minutes: 45, staffIds: ['staff_2'], required_skill: 'shave', average_rating: 5.0, review_count: 8 },
+  { id: 'serv_4', name: 'Coloring', description: 'Full hair coloring', price: 75, currency: 'USD', duration_minutes: 90, staffIds: ['staff_1'], required_skill: 'coloring', average_rating: 4.2, review_count: 5 },
 ];
 
 export let mockStaff: Staff[] = [
-    { id: 'staff_1', full_name: 'Mike Miller', email: 'mike.m@example.com', phone: '555-111-2222', role: 'Stylist', schedule: defaultSchedule, average_rating: 4.7, review_count: 20 },
-    { id: 'staff_2', full_name: 'Sarah Chen', email: 'sarah.c@example.com', phone: '555-333-4444', role: 'Manager', schedule: defaultSchedule, average_rating: 4.9, review_count: 10 },
-    { id: 'staff_3', full_name: 'David Lee', email: 'david.l@example.com', phone: '555-555-6666', role: 'Assistant', schedule: { ...defaultSchedule, friday: { is_working: false, start_time: '09:00', end_time: '17:00' } }, average_rating: 4.4, review_count: 5 },
+    { id: 'staff_1', full_name: 'Mike Miller', email: 'mike.m@example.com', phone: '555-111-2222', role: 'Stylist', schedule: defaultSchedule, skills: ['haircut', 'coloring', 'beard-trim'], average_rating: 4.7, review_count: 20 },
+    { id: 'staff_2', full_name: 'Sarah Chen', email: 'sarah.c@example.com', phone: '555-333-4444', role: 'Manager', schedule: defaultSchedule, skills: ['haircut', 'shave', 'beard-trim'], average_rating: 4.9, review_count: 10 },
+    { id: 'staff_3', full_name: 'David Lee', email: 'david.l@example.com', phone: '555-555-6666', role: 'Assistant', schedule: { ...defaultSchedule, friday: { is_working: false, start_time: '09:00', end_time: '17:00' } }, skills: ['beard-trim'], average_rating: 4.4, review_count: 5 },
 ];
 
 export let mockBookings: Booking[] = [
@@ -76,6 +77,25 @@ export let mockBookings: Booking[] = [
         transaction_id: 'txn_1',
     },
 ];
+
+export let mockProducts: Product[] = [
+    { id: 'prod_1', name: 'Premium Pomade', description: 'High-shine, strong hold pomade for classic styles.', price: 20.50, stock_quantity: 100, imageUrl: 'https://placehold.co/400x400/e2e8f0/4a5568?text=Pomade' },
+    { id: 'prod_2', name: 'Matte Clay', description: 'Natural look, matte finish clay for textured hair.', price: 19.00, stock_quantity: 75, imageUrl: 'https://placehold.co/400x400/e2e8f0/4a5568?text=Clay' },
+    { 
+        id: 'prod_3', 
+        name: 'Beard Oil', 
+        description: 'Nourishing oil for a healthy and soft beard.', 
+        price: 0, // Price is per variant
+        stock_quantity: 60,
+        imageUrl: 'https://placehold.co/400x400/e2e8f0/4a5568?text=Beard+Oil',
+        variants: [
+            { id: 'var_1', name: 'Sandalwood', price: 22.00, stock_quantity: 30 },
+            { id: 'var_2', name: 'Cedarwood', price: 22.00, stock_quantity: 30 },
+        ]
+    },
+];
+
+
 export let mockTransactions: Transaction[] = [
     {
         id: 'txn_1',
@@ -102,7 +122,6 @@ export let mockReviews: Review[] = [
 ];
 
 export let mockCustomerUsers: CustomerUser[] = [
-    // FIX: Initialize favoriteBusinessIds for mock customer users to satisfy type requirements.
     { id: 'cuser_1', full_name: 'John Doe', email: 'john.doe@example.com', passwordHash: 'hashed_password123', favoriteBusinessIds: ['biz_2'] }
 ];
 

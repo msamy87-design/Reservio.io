@@ -65,6 +65,20 @@ const StaffDetailPage: React.FC = () => {
                             <p className="text-gray-500 dark:text-gray-400">{staffMember.email}</p>
                             <p className="text-gray-500 dark:text-gray-400">{staffMember.phone}</p>
                         </div>
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Skills</h4>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {staffMember.skills && staffMember.skills.length > 0 ? (
+                                    staffMember.skills.map(skill => (
+                                        <span key={skill} className="px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full dark:bg-indigo-900 dark:text-indigo-200 capitalize">
+                                            {skill}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-gray-400">No skills listed.</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Schedule Card */}

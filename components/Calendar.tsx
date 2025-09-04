@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Booking, TimeOff } from '../types';
 import { CalendarView } from '../pages/BookingsPage';
 import BookingDetailsPopover from './BookingDetailsPopover';
+import { ExclamationTriangleIcon } from './Icons';
 
 // #region Helper Functions
 const getWeekDays = (date: Date): Date[] => {
@@ -47,6 +47,7 @@ const BookingPill: React.FC<{ booking: Booking, onClick: (e: React.MouseEvent, b
     e.stopPropagation();
     onClick(e, booking);
   };
+  const isHighRisk = booking.noShowRiskScore && booking.noShowRiskScore >= 7;
 
   return (
     <button
@@ -56,8 +57,15 @@ const BookingPill: React.FC<{ booking: Booking, onClick: (e: React.MouseEvent, b
       onDragEnd={onDragEnd}
       className={`w-full text-left p-1.5 mb-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-md text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-opacity ${isDragged ? 'opacity-40 border-2 border-dashed border-indigo-500' : 'cursor-grab'}`}
     >
-      <div className="text-xs font-semibold truncate">
-        {new Date(booking.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} {booking.service.name}
+      <div className="text-xs font-semibold truncate flex items-center gap-1">
+        {isHighRisk && (
+            <div title={`High No-Show Risk: ${booking.noShowRiskScore}/10`}>
+                <ExclamationTriangleIcon className="h-3 w-3 text-yellow-500" />
+            </div>
+        )}
+        <span>
+            {new Date(booking.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} {booking.service.name}
+        </span>
       </div>
       <div className="text-xs text-indigo-500 dark:text-indigo-400 truncate">{booking.staff.full_name}</div>
       {showCustomer && <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{booking.customer.full_name}</div>}
@@ -219,6 +227,7 @@ const WeekView: React.FC<ViewProps> = ({ currentDate, bookingsByDate, timeOffByD
                     const height = durationMinutes * (4 / 60);
 
                     const isDragged = draggedBooking?.id === booking.id;
+                    const isHighRisk = booking.noShowRiskScore && booking.noShowRiskScore >= 7;
 
                     return (
                        <button
@@ -233,7 +242,14 @@ const WeekView: React.FC<ViewProps> = ({ currentDate, bookingsByDate, timeOffByD
                             height: `${height}rem`,
                           }}
                         >
-                          <p className="text-xs font-bold truncate">{booking.service.name}</p>
+                          <p className="text-xs font-bold truncate flex items-center gap-1.5">
+                              {isHighRisk && (
+                                  <div title={`High No-Show Risk: ${booking.noShowRiskScore}/10`}>
+                                      <ExclamationTriangleIcon className="h-3 w-3 text-yellow-500" />
+                                  </div>
+                              )}
+                              <span>{booking.service.name}</span>
+                          </p>
                           <p className="text-xs truncate">{booking.customer.full_name}</p>
                           <p className="text-xs text-indigo-600 dark:text-indigo-400 truncate">{booking.staff.full_name}</p>
                         </button>
