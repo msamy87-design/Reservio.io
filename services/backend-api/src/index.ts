@@ -1,6 +1,5 @@
-
-// FIX: Ensure named imports for Request and Response types are used consistently.
-import express, { Request, Response } from 'express';
+// FIX: Switch to default express import to resolve type conflicts.
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -40,8 +39,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // --- Routes ---
-// FIX: Use named imports for Request and Response types.
-app.get('/api', (req: Request, res: Response) => {
+// FIX: Use qualified express types to resolve type errors.
+app.get('/api', (req: express.Request, res: express.Response) => {
   res.send('Reservio API is running!');
 });
 

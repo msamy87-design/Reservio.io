@@ -986,7 +986,6 @@ export const createProduct = async (data: NewProductData): Promise<Product> => {
     });
 };
 
-// FIX: Handle NewProductData to Product conversion correctly, especially for variants.
 export const createProductsBulk = async (data: NewProductData[]): Promise<BulkImportResult> => {
     console.log(`Bulk creating ${data.length} products`);
     return new Promise(resolve => {
@@ -1044,6 +1043,7 @@ export const updateProduct = async (id: string, data: NewProductData): Promise<P
             if (variants) {
                 if (variants.length > 0) {
                      updatedProduct.variants = variants.map(v => {
+                        // FIX: Handle NewProductData to Product conversion correctly, especially for variants.
                         const existing = mockProducts[index].variants?.find(ev => ev.name === v.name);
                         return { ...v, id: existing?.id || `var_${crypto.randomUUID()}`};
                     });

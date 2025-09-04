@@ -1,38 +1,68 @@
 import { mockBusinesses, mockBusinessSettings, mockServices, mockStaff, mockReviews, mockBookings, mockTimeOff } from '../data/mockData';
-import { PublicBusinessProfile } from '../types/business';
+import { PublicBusinessProfile, DayOfWeek, PublicService, PublicStaff, PublicReview } from '../../../../types';
 import * as dateFns from 'date-fns';
-import { DayOfWeek } from '../../../../types';
 
 export const searchBusinesses = async (params: { location?: string; service?: string }): Promise<PublicBusinessProfile[]> => {
     // Mock search logic
     let results = mockBusinesses.filter(b => b.verification_status === 'approved');
-    if (params.location) {
-        results = results.filter(b => b.address.toLowerCase().includes(params.location!.toLowerCase()));
+    if (params.location && params.location.trim().length > 0) {
+        results = results.filter(b => b.address.toLowerCase().includes(params.location!.trim().toLowerCase()));
     }
-    // In a real app, service search would be more complex (e.g., checking services offered by business)
-    // For now, we'll just return all approved businesses if no location is specified
+    
+    if (params.service && params.service.trim().length > 0) {
+        const serviceNameQuery = params.service.trim().toLowerCase();
+        const serviceExists = mockServices.some(s => s.name.toLowerCase().includes(serviceNameQuery));
+        if (!serviceExists) {
+            return []; // Return no results if the searched service doesn't exist.
+        }
+    }
     
     // Enrich with details
     return results.map(b => {
         const settings = mockBusinessSettings[b.id];
         if (!settings) return null;
 
-        const reviewsForBusiness = mockReviews.slice(0, 5); // Mock
+        const reviewsForBusiness = mockReviews.filter(r => r.status === 'Published').slice(0, 5);
         const avgRating = reviewsForBusiness.length > 0 ? reviewsForBusiness.reduce((acc, r) => acc + r.rating, 0) / reviewsForBusiness.length : 0;
+        
+        const publicServices: PublicService[] = mockServices.map(s => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            price: s.price,
+            duration_minutes: s.duration_minutes,
+        }));
+        
+        const publicStaff: PublicStaff[] = mockStaff.map(s => ({
+            id: s.id,
+            full_name: s.full_name,
+            role: s.role,
+            average_rating: s.average_rating,
+            review_count: s.review_count
+        }));
 
-        return {
+        const publicReviews: PublicReview[] = reviewsForBusiness.map(r => ({
+            id: r.id,
+            customer_name: r.customer_name,
+            rating: r.rating,
+            comment: r.comment,
+            created_at: r.created_at
+        }));
+
+        const profile: PublicBusinessProfile = {
             id: b.id,
             name: b.name,
             address: b.address,
             phone: b.phone,
             imageUrl: settings.marketplace_listing.public_image_url,
-            services: mockServices, // Simplified
-            staff: mockStaff, // Simplified
-            reviews: reviewsForBusiness,
+            services: publicServices,
+            staff: publicStaff,
+            reviews: publicReviews,
             average_rating: avgRating,
             review_count: reviewsForBusiness.length,
         };
-    }).filter(b => b !== null) as PublicBusinessProfile[];
+        return profile;
+    }).filter((b): b is PublicBusinessProfile => b !== null);
 };
 
 export const getBusinessById = async (id: string): Promise<PublicBusinessProfile | null> => {
@@ -43,21 +73,46 @@ export const getBusinessById = async (id: string): Promise<PublicBusinessProfile
     const settings = mockBusinessSettings[id];
     if (!settings) return null;
     
-    const reviewsForBusiness = mockReviews.slice(0, 5); // Mock
+    const reviewsForBusiness = mockReviews.filter(r => r.status === 'Published').slice(0, 5);
     const avgRating = reviewsForBusiness.length > 0 ? reviewsForBusiness.reduce((acc, r) => acc + r.rating, 0) / reviewsForBusiness.length : 0;
     
-    return {
+     const publicServices: PublicService[] = mockServices.map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        price: s.price,
+        duration_minutes: s.duration_minutes,
+    }));
+    
+    const publicStaff: PublicStaff[] = mockStaff.map(s => ({
+        id: s.id,
+        full_name: s.full_name,
+        role: s.role,
+        average_rating: s.average_rating,
+        review_count: s.review_count
+    }));
+
+    const publicReviews: PublicReview[] = reviewsForBusiness.map(r => ({
+        id: r.id,
+        customer_name: r.customer_name,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: r.created_at
+    }));
+    
+    const profile: PublicBusinessProfile = {
         id: business.id,
         name: business.name,
         address: business.address,
         phone: business.phone,
         imageUrl: settings.marketplace_listing.public_image_url,
-        services: mockServices, // Simplified
-        staff: mockStaff, // Simplified
-        reviews: reviewsForBusiness,
+        services: publicServices,
+        staff: publicStaff,
+        reviews: publicReviews,
         average_rating: avgRating,
         review_count: reviewsForBusiness.length,
     };
+    return profile;
 };
 
 export const getBusinessesByIds = async (ids: string[]): Promise<PublicBusinessProfile[]> => {
@@ -78,7 +133,7 @@ export const updateBusinessProfile = async (businessId: string, data: Partial<{ 
     throw new Error('Business not found');
 };
 
-export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
+const calculateSlotsForStaff = async (staffId: string, serviceId: string, date: Date): Promise<string[]> => {
     const staff = mockStaff.find(s => s.id === staffId);
     const service = mockServices.find(s => s.id === serviceId);
     
@@ -119,6 +174,15 @@ export const getAvailableSlots = async (staffId: string, serviceId: string, date
     return slots;
 };
 
+export const getAvailableSlots = async (staffId: string, serviceId: string, date: Date): Promise<Record<string, string[]>> => {
+    const slots = await calculateSlotsForStaff(staffId, serviceId, date);
+    const result: Record<string, string[]> = {};
+    slots.forEach(slot => {
+        result[slot] = [staffId];
+    });
+    return result;
+};
+
 export const getCombinedAvailability = async (serviceId: string, date: Date): Promise<Record<string, string[]>> => {
     const service = mockServices.find(s => s.id === serviceId);
     if (!service) {
@@ -129,7 +193,7 @@ export const getCombinedAvailability = async (serviceId: string, date: Date): Pr
     const availability: Record<string, string[]> = {};
 
     for (const staff of staffForService) {
-        const slots = await getAvailableSlots(staff.id, serviceId, date);
+        const slots = await calculateSlotsForStaff(staff.id, serviceId, date);
         for (const slot of slots) {
             if (!availability[slot]) {
                 availability[slot] = [];

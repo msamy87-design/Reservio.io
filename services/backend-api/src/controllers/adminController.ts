@@ -1,11 +1,10 @@
-
-// FIX: Use named imports from express to avoid type conflicts.
-import { Request, Response } from 'express';
+// FIX: Use default import for express to avoid type conflicts.
+import express from 'express';
 import * as adminService from '../services/adminService';
 import { BusinessVerificationStatus } from '../../../../types';
 
-// FIX: Use named imports for Request and Response types.
-export const getStats = async (req: Request, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const getStats = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const stats = await adminService.getPlatformStats();
         res.status(200).json(stats);
@@ -14,8 +13,8 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Use named imports for Request and Response types.
-export const getBusinesses = async (req: Request, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const getBusinesses = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const businesses = await adminService.getAllBusinesses();
         res.status(200).json(businesses);
@@ -24,8 +23,8 @@ export const getBusinesses = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// FIX: Use named imports for Request and Response types.
-export const updateBusinessStatus = async (req: Request, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const updateBusinessStatus = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { status } = req.body;

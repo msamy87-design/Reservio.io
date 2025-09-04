@@ -1,6 +1,5 @@
-
-// FIX: Use named imports from express to avoid type conflicts.
-import express, { Router, Request, Response } from 'express';
+// FIX: Use default import for express to avoid type conflicts.
+import express, { Router } from 'express';
 import Stripe from 'stripe';
 import { bookingsService } from '../services/bookingsService';
 
@@ -16,8 +15,8 @@ router.post(
   '/stripe',
   // IMPORTANT: raw body so we can verify signature
   express.raw({ type: 'application/json' }),
-  // FIX: Use named imports for Request and Response types.
-  async (req: Request, res: Response) => {
+  // FIX: Use qualified express types to resolve type errors.
+  async (req: express.Request, res: express.Response) => {
     try {
       const sig = req.headers['stripe-signature'] as string | undefined;
       if (!sig || !WEBHOOK_SECRET) {
@@ -27,11 +26,10 @@ router.post(
 
       // req.body is a Buffer because of express.raw
       // FIX: Use req.body directly to avoid 'Buffer' not found error when node types are missing.
-      const buf = req.body;
 
       let event: Stripe.Event;
       try {
-        event = stripe.webhooks.constructEvent(buf, sig, WEBHOOK_SECRET);
+        event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);
       } catch (err: any) {
         console.error('[stripe] Signature verification failed:', err?.message);
         return res.status(400).send(`Webhook Error: ${err?.message ?? 'invalid signature'}`);

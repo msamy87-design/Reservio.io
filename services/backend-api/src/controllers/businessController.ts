@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+
+import express from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';
 
-export const search = async (req: Request, res: Response): Promise<void> => {
+export const search = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { location, service } = req.query;
 
@@ -24,7 +25,7 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getById = async (req: Request, res: Response): Promise<void> => {
+export const getById = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;
         const business = await businessService.getBusinessById(id);
@@ -42,7 +43,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getMultipleByIds = async (req: Request, res: Response): Promise<void> => {
+export const getMultipleByIds = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { ids } = req.body;
         if (!Array.isArray(ids)) {
@@ -59,7 +60,7 @@ export const getMultipleByIds = async (req: Request, res: Response): Promise<voi
     }
 };
 
-export const getAvailability = async (req: Request, res: Response): Promise<void> => {
+export const getAvailability = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { id: businessId } = req.params;
         const { serviceId, staffId, date } = req.query;

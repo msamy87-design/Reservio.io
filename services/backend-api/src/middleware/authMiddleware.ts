@@ -1,6 +1,5 @@
-
-// FIX: Use named imports from express to avoid type conflicts.
-import { Request, Response, NextFunction } from 'express';
+// FIX: Use default import for express to resolve type conflicts.
+import express from 'express';
 import { PublicCustomerUser } from '../types/customer';
 import { AdminUser } from '../../../../types';
 
@@ -26,20 +25,20 @@ const mockVerifyBusinessToken = (token: string): { businessId: string, email: st
 }
 
 // FIX: Extend express.Request to ensure correct types.
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends express.Request {
   customer?: PublicCustomerUser;
 }
 // FIX: Extend express.Request to ensure correct types.
-export interface AuthenticatedBusinessRequest extends Request {
+export interface AuthenticatedBusinessRequest extends express.Request {
   business?: { businessId: string, email: string };
 }
 // FIX: Extend express.Request to ensure correct types.
-export interface AuthenticatedAdminRequest extends Request {
+export interface AuthenticatedAdminRequest extends express.Request {
   admin?: AdminUser;
 }
 
 // FIX: Qualify types with express to resolve type errors.
-export const protectCustomer = (req: Request, res: Response, next: NextFunction): void => {
+export const protectCustomer = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -65,7 +64,7 @@ export const protectCustomer = (req: Request, res: Response, next: NextFunction)
 };
 
 // FIX: Qualify types with express to resolve type errors.
-export const protectBusiness = (req: Request, res: Response, next: NextFunction): void => {
+export const protectBusiness = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
     // This is a workaround for the mock environment. In a real app with separate frontends,
@@ -99,7 +98,7 @@ export const protectBusiness = (req: Request, res: Response, next: NextFunction)
 };
 
 // FIX: Qualify types with express to resolve type errors.
-export const protectAdmin = (req: Request, res: Response, next: NextFunction): void => {
+export const protectAdmin = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];

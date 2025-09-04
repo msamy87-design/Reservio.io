@@ -1,6 +1,5 @@
-
-// FIX: Use named import for Response type.
-import { Request, Response } from 'express';
+// FIX: Use default import for express to avoid type conflicts.
+import express from 'express';
 import { AuthenticatedBusinessRequest } from '../middleware/authMiddleware';
 import * as businessService from '../services/businessService';
 import { BookingStatus, ReviewStatus } from '../types/booking';
@@ -8,8 +7,8 @@ import { mockBookings, mockReviews } from '../data/mockData';
 import * as reviewService from '../services/reviewService';
 
 
-// FIX: Use named Response type to resolve type errors.
-export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const updateProfile = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
     try {
         const businessId = req.business?.businessId;
         const { is_listed, public_image_url } = req.body;
@@ -42,8 +41,8 @@ export const updateProfile = async (req: AuthenticatedBusinessRequest, res: Resp
     }
 };
 
-// FIX: Use named Response type to resolve type errors.
-export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { status } = req.body as { status: BookingStatus };
@@ -60,8 +59,8 @@ export const updateBookingStatus = async (req: AuthenticatedBusinessRequest, res
     }
 };
 
-// FIX: Use named Response type to resolve type errors.
-export const getReviews = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const getReviews = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
     try {
         // In a real app, filter reviews for req.business.businessId
         const reviews = await reviewService.getReviewsByBusiness();
@@ -71,8 +70,8 @@ export const getReviews = async (req: AuthenticatedBusinessRequest, res: Respons
     }
 };
 
-// FIX: Use named Response type to resolve type errors.
-export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const updateReviewStatus = async (req: AuthenticatedBusinessRequest, res: express.Response): Promise<void> => {
     try {
         const { reviewId } = req.params;
         const { status } = req.body as { status: ReviewStatus };

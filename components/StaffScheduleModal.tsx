@@ -26,7 +26,7 @@ const StaffScheduleModal: React.FC<StaffScheduleModalProps> = ({
     }
   }, [staff, isOpen]);
 
-  const handleDayChange = (day: keyof StaffSchedule, field: keyof DaySchedule, value: any) => {
+  const handleDayChange = (day: DayOfWeek, field: keyof DaySchedule, value: any) => {
     setSchedule(prev => ({
       ...prev,
       [day]: {

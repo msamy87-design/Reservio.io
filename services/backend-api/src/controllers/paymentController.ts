@@ -1,10 +1,9 @@
-
-// FIX: Use named imports from express to avoid type conflicts.
-import { Request, Response } from 'express';
+// FIX: Use default import for express to avoid type conflicts.
+import express from 'express';
 import * as paymentService from '../services/paymentService';
 
-// FIX: Use named imports for Request and Response types.
-export const create = async (req: Request, res: Response): Promise<void> => {
+// FIX: Use qualified express types to resolve type errors.
+export const create = async (req: express.Request, res: express.Response): Promise<void> => {
     try {
         const { serviceId } = req.body;
 

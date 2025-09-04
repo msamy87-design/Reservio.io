@@ -1,9 +1,10 @@
-import { Response } from 'express';
+
+import express from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import * as customerService from '../services/customerService';
 import { UpdateProfileData, ChangePasswordData } from '../types/customer';
 
-export const getMyBookings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getMyBookings = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
@@ -20,7 +21,7 @@ export const getMyBookings = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
-export const updateMyProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const updateMyProfile = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
@@ -39,7 +40,7 @@ export const updateMyProfile = async (req: AuthenticatedRequest, res: Response):
     }
 };
 
-export const changeMyPassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const changeMyPassword = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
@@ -58,7 +59,7 @@ export const changeMyPassword = async (req: AuthenticatedRequest, res: Response)
     }
 };
 
-export const getMyFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getMyFavorites = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
@@ -72,7 +73,7 @@ export const getMyFavorites = async (req: AuthenticatedRequest, res: Response): 
     }
 };
 
-export const addMyFavorite = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const addMyFavorite = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
@@ -91,7 +92,7 @@ export const addMyFavorite = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
-export const removeMyFavorite = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const removeMyFavorite = async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
     try {
         const customerId = req.customer?.id;
         if (!customerId) {
