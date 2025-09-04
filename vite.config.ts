@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // FIX: Use path.resolve(process.cwd()) to fix potential __dirname error and explicitly point to the project root.
-      '@': path.resolve(process.cwd()),
+      '@': path.resolve(process.cwd(), 'src'),
     },
   },
 });

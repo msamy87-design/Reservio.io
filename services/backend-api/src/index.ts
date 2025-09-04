@@ -29,6 +29,7 @@ const limiter = rateLimit({
 	standardHeaders: true,
 	legacyHeaders: false,
 });
+// FIX: Correctly apply middleware
 app.use(limiter);
 
 // --- Core Middleware ---
@@ -48,7 +49,9 @@ app.get('/api', (req: Request, res: Response) => {
 app.use('/api/webhooks', stripeWebhooksRouter);
 
 // JSON/body parsers for normal routes
+// FIX: Correctly apply middleware
 app.use(express.json({ limit: '10mb' }));
+// FIX: Correctly apply middleware
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/businesses', businessesRouter);

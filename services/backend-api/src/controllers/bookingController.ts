@@ -6,7 +6,7 @@ import { NewPublicBookingData } from '../types/booking';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 // FIX: Use named Response type to resolve type errors.
-export const create = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
     try {
         const bookingData: NewPublicBookingData = req.body;
 

@@ -1,9 +1,7 @@
 
 
-
-
 // FIX: Use named import for Response type.
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import * as reviewService from '../services/reviewService';
 import { NewReviewData } from '../types/booking';

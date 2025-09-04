@@ -1,8 +1,4 @@
 
-
-
-
-
 // FIX: Use named imports from express to avoid type conflicts.
 import { Request, Response } from 'express';
 import * as adminService from '../services/adminService';

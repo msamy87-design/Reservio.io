@@ -1,11 +1,8 @@
 
-
-
-
-
 // FIX: Use named imports from express to avoid type conflicts.
 import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
+import { bookingsService } from '../services/bookingsService';
 
 const router = Router();
 
@@ -45,7 +42,7 @@ router.post(
           const pi = event.data.object as Stripe.PaymentIntent;
           const bookingId = pi.metadata?.booking_id;
           console.log('[stripe] payment_intent.succeeded', { bookingId, amountReceived: pi.amount_received });
-          // TODO: mark booking as paid
+          await bookingsService.markPaid(bookingId, { amount: pi.amount_received, paymentIntentId: pi.id });
           break;
         }
         case 'payment_intent.payment_failed': {
@@ -54,14 +51,14 @@ router.post(
             bookingId: pi.metadata?.booking_id,
             lastError: pi.last_payment_error?.message,
           });
-          // TODO: mark booking as failed
+          await bookingsService.markPaymentFailed(pi.metadata?.booking_id, { reason: pi.last_payment_error?.message, paymentIntentId: pi.id });
           break;
         }
         case 'charge.refunded': {
           const charge = event.data.object as Stripe.Charge;
           const bookingId = (charge.metadata as any)?.booking_id;
           console.log('[stripe] charge.refunded', { bookingId, chargeId: charge.id });
-          // TODO: mark booking as refunded
+          await bookingsService.markRefunded(bookingId, { chargeId: charge.id });
           break;
         }
         default: {

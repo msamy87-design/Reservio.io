@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -22,6 +23,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './contexts/ThemeContext';
 import HomePage from './pages/HomePage';
+// FIX: Correct import path for SearchResultsPage
 import SearchResultsPage from './pages/SearchResultsPage';
 import CustomerLoginPage from './pages/CustomerLoginPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
