@@ -375,6 +375,7 @@ export interface PublicCustomerUser {
     id: string;
     full_name: string;
     email: string;
+    favoriteBusinessIds: string[];
 }
 
 export interface NewPublicCustomerData {
@@ -390,4 +391,14 @@ export interface NewPublicBookingData {
     startTime: string; // ISO String
     customer: NewPublicCustomerData;
     paymentIntentId?: string;
+}
+
+export interface UpdateProfileData {
+    full_name: string;
+    email: string;
+}
+
+export interface ChangePasswordData {
+    current_password: string;
+    new_password: string;
 }

@@ -1,29 +1,36 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { getBusinessById } from '../services/marketplaceApi';
 import { PublicBusinessProfile, PublicService } from '../types';
 import MarketplaceHeader from '../components/MarketplaceHeader';
 import StarRating from '../components/StarRating';
-import { MapPinIcon, PhoneIcon } from '../components/Icons';
+import { MapPinIcon, PhoneIcon, HeartIcon } from '../components/Icons';
 import BookingModal from '../components/BookingModal';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { STRIPE_PUBLISHABLE_KEY } from '../utils/env';
 import MarketplaceFooter from '../components/MarketplaceFooter';
+import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 
 const BusinessProfilePage: React.FC = () => {
     const { businessId } = useParams<{ businessId: string }>();
+    const location = useLocation();
+    const { currentCustomer, addFavorite, removeFavorite } = useCustomerAuth();
+
     const [business, setBusiness] = useState<PublicBusinessProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<PublicService | null>(null);
+    const [initialStaffId, setInitialStaffId] = useState<string | null>(null);
+
+    const { serviceToBookId, staffToBookId } = location.state || {};
+    
+    const isFavorited = currentCustomer?.favoriteBusinessIds.includes(businessId || '') || false;
 
     useEffect(() => {
         const fetchBusiness = async () => {
@@ -42,14 +49,34 @@ const BusinessProfilePage: React.FC = () => {
         };
         fetchBusiness();
     }, [businessId]);
+    
+    // Effect to handle "Book Again" functionality
+    useEffect(() => {
+        if (serviceToBookId && business) {
+            const service = business.services.find(s => s.id === serviceToBookId);
+            if (service) {
+                handleBookNow(service, staffToBookId);
+            }
+        }
+    }, [business, serviceToBookId, staffToBookId]);
 
-    const handleBookNow = (service: PublicService) => {
+    const handleBookNow = (service: PublicService, staffId: string | null = null) => {
         if (!stripePromise) {
             alert("Stripe is not configured. Please add VITE_STRIPE_PUBLISHABLE_KEY to your environment variables.");
             return;
         }
         setSelectedService(service);
+        setInitialStaffId(staffId);
         setIsBookingModalOpen(true);
+    };
+
+    const handleFavoriteToggle = () => {
+        if (!currentCustomer || !businessId) return;
+        if (isFavorited) {
+            removeFavorite(businessId);
+        } else {
+            addFavorite(businessId);
+        }
     };
 
     if (loading) {
@@ -76,12 +103,22 @@ const BusinessProfilePage: React.FC = () => {
                         <img src={business.imageUrl} alt={`${business.name} hero`} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black bg-opacity-40" />
                         <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-10 text-white">
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">{business.name}</h1>
-                            <div className="mt-2 flex items-center gap-4">
-                                <div className="flex items-center">
-                                    <StarRating rating={business.average_rating} />
-                                    <span className="ml-2 text-sm">({business.review_count} reviews)</span>
+                             <div className="flex items-start justify-between">
+                                <div>
+                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">{business.name}</h1>
+                                    <div className="mt-2 flex items-center gap-4">
+                                        <div className="flex items-center">
+                                            <StarRating rating={business.average_rating} />
+                                            <span className="ml-2 text-sm">({business.review_count} reviews)</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                {currentCustomer && (
+                                    <button onClick={handleFavoriteToggle} className={`p-3 rounded-full transition-colors duration-200 ${isFavorited ? 'bg-red-500/80 text-white' : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/40'}`}>
+                                        <HeartIcon className={`h-6 w-6 ${isFavorited ? 'fill-current' : ''}`} />
+                                        <span className="sr-only">{isFavorited ? 'Remove from favorites' : 'Add to favorites'}</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -160,6 +197,7 @@ const BusinessProfilePage: React.FC = () => {
                     onClose={() => setIsBookingModalOpen(false)}
                     service={selectedService}
                     business={business}
+                    initialStaffId={initialStaffId}
                 />
             )}
         </Elements>

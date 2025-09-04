@@ -1,4 +1,3 @@
-
 import { PublicBusinessProfile, PublicService, PublicStaff, PublicReview } from '../types/business';
 import { mockStaff, mockServices, mockReviews, mockBookings, mockTimeOff } from '../data/mockData';
 import { StaffSchedule } from '../types/booking';
@@ -75,6 +74,22 @@ export const getBusinessById = async (id: string): Promise<PublicBusinessProfile
                     .map(({booking_id, customer_id, service_id, staff_id, status, ...r}) => r),
             };
             resolve(businessProfile);
+        }, 300);
+    });
+};
+
+export const getBusinessesByIds = async (ids: string[]): Promise<PublicBusinessProfile[]> => {
+     return new Promise(resolve => {
+        setTimeout(() => {
+            const businesses = mockBusinesses
+                .filter(b => ids.includes(b.id))
+                .map(b => ({
+                    ...b,
+                     services: mockServices.map(s => ({...s, description: ''})),
+                     staff: [],
+                     reviews: []
+                }));
+            resolve(businesses as PublicBusinessProfile[]);
         }, 300);
     });
 };

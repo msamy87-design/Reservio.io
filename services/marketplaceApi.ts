@@ -1,5 +1,3 @@
-
-
 import { PublicBusinessProfile, NewPublicBookingData, Booking } from '../types';
 import { API_BASE_URL } from '../utils/env';
 
@@ -22,6 +20,16 @@ export const searchBusinesses = async (location: string, service: string): Promi
 
 export const getBusinessById = async (id: string): Promise<PublicBusinessProfile> => {
     const response = await fetch(`${API_BASE_URL}/businesses/${id}`);
+    return handleResponse(response);
+};
+
+export const getBusinessesByIds = async (ids: string[]): Promise<PublicBusinessProfile[]> => {
+    if (ids.length === 0) return [];
+    const response = await fetch(`${API_BASE_URL}/businesses/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+    });
     return handleResponse(response);
 };
 

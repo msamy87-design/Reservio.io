@@ -60,6 +60,17 @@ export let mockBookings: Booking[] = [
         business: { id: 'biz_1', name: 'The Grooming Lounge' },
         payment_status: 'deposit_paid',
     },
+     {
+        id: 'booking_3',
+        start_at: new Date(new Date().setDate(new Date().getDate() - 5)).setHours(11, 0, 0, 0).toString(),
+        end_at: new Date(new Date().setDate(new Date().getDate() - 5)).setHours(11, 30, 0, 0).toString(),
+        status: 'completed',
+        customer: { id: 'cust_1', full_name: 'John Doe' },
+        service: { id: 'serv_1', name: 'Haircut', duration_minutes: 30 },
+        staff: { id: 'staff_1', full_name: 'Mike Miller' },
+        business: { id: 'biz_1', name: 'The Grooming Lounge' },
+        payment_status: 'paid_in_full',
+    },
 ];
 
 export let mockTimeOff: TimeOff[] = [
@@ -71,7 +82,7 @@ export let mockReviews: Review[] = [
 ];
 
 export let mockCustomerUsers: CustomerUser[] = [
-    { id: 'cuser_1', full_name: 'John Doe', email: 'john.doe@example.com', passwordHash: 'hashed_password123' }
+    { id: 'cuser_1', full_name: 'John Doe', email: 'john.doe@example.com', passwordHash: 'hashed_password123', favoriteBusinessIds: ['biz_2'] }
 ];
 
 export let mockBusinesses: BusinessForAdmin[] = [

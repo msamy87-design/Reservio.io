@@ -1,10 +1,7 @@
-
-// FIX: Use named imports for Request and Response types from express.
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
 import * as dateFns from 'date-fns';
 
-// FIX: Use named imports for Request and Response types.
 export const search = async (req: Request, res: Response): Promise<void> => {
     try {
         const { location, service } = req.query;
@@ -27,7 +24,6 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Use named imports for Request and Response types.
 export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -46,7 +42,23 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// FIX: Use named imports for Request and Response types.
+export const getMultipleByIds = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids)) {
+            res.status(400).json({ message: 'An array of business IDs is required.' });
+            return;
+        }
+        
+        const businesses = await businessService.getBusinessesByIds(ids);
+        res.status(200).json(businesses);
+
+    } catch (error) {
+        console.error('Error fetching businesses by IDs:', error);
+        res.status(500).json({ message: 'An error occurred while fetching business profiles.' });
+    }
+};
+
 export const getAvailability = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id: businessId } = req.params;

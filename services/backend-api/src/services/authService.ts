@@ -1,4 +1,3 @@
-
 import { mockCustomerUsers, mockAdminUsers } from '../data/mockData';
 import { AuthResponse, AdminAuthResponse } from '../types/auth';
 import { PublicCustomerUser, CustomerUser } from '../types/customer';
@@ -44,6 +43,8 @@ export const signupCustomer = async (full_name: string, email: string, password:
                 full_name,
                 email,
                 passwordHash: mockHash(password),
+                // FIX: Initialize favoriteBusinessIds for new users to satisfy type requirements.
+                favoriteBusinessIds: [],
             };
             mockCustomerUsers.push(newUser);
             

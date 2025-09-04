@@ -7,6 +7,10 @@ const router = Router();
 // Description: Searches for businesses based on location and/or service type.
 router.get('/search', businessController.search);
 
+// Route: POST /api/businesses/batch
+// Description: Fetches multiple business profiles by their IDs.
+router.post('/batch', businessController.getMultipleByIds);
+
 // Route: GET /api/businesses/:id
 // Description: Fetches the public profile for a single business.
 router.get('/:id', businessController.getById);

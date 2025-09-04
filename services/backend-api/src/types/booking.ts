@@ -1,4 +1,5 @@
 
+
 // Re-exporting shared types for consistency. In a monorepo, these would be in a shared package.
 
 export type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'completed';
@@ -116,4 +117,6 @@ export interface CustomerUser {
     full_name: string;
     email: string;
     passwordHash: string;
+    // FIX: Add favoriteBusinessIds to align with other type definitions
+    favoriteBusinessIds: string[];
 }

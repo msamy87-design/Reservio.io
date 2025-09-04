@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Modal from './Modal';
 import { PublicBusinessProfile, PublicService, PublicStaff, NewPublicBookingData } from '../types';
@@ -14,12 +13,13 @@ interface BookingModalProps {
     onClose: () => void;
     service: PublicService;
     business: PublicBusinessProfile;
+    initialStaffId?: string | null;
 }
 
 type BookingStep = 'staff' | 'dateTime' | 'details' | 'payment' | 'confirmation';
 type AnyStaff = { id: 'any'; full_name: string; role: 'Stylist' };
 
-const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, business }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, business, initialStaffId }) => {
     const { currentCustomer } = useCustomerAuth();
     const { addToast } = useToast();
 
@@ -47,7 +47,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     useEffect(() => {
         if (isOpen) {
             // Reset state when modal opens
-            if (business.staff.length === 1) {
+            if (initialStaffId) {
+                const staff = business.staff.find(s => s.id === initialStaffId);
+                setSelectedStaff(staff || null);
+                setSelectedStaffId(initialStaffId);
+                setStep('dateTime');
+            } else if (business.staff.length === 1) {
                 setStep('dateTime');
                 setSelectedStaff(business.staff[0]);
                 setSelectedStaffId(business.staff[0].id);
@@ -60,7 +65,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
             setSelectedTime(null);
             setClientSecret(null);
         }
-    }, [isOpen, business.staff]);
+    }, [isOpen, business.staff, initialStaffId]);
 
     useEffect(() => {
         const fetchTimes = async () => {
@@ -114,7 +119,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
     }, [step, clientSecret, service.id, addToast]);
 
     const handlePrevStep = () => {
-        if (step === 'dateTime') setStep(business.staff.length > 1 ? 'staff' : 'staff');
+        if (step === 'dateTime') {
+            if (initialStaffId) {
+                 onClose(); // If pre-selected via rebook, just close
+            } else {
+                setStep(business.staff.length > 1 ? 'staff' : 'staff')
+            }
+        }
         else if (step === 'details') setStep('dateTime');
         else if (step === 'payment') {
             if (currentCustomer) setStep('dateTime');
@@ -269,7 +280,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, service, b
                 {/* Footer */}
                 {step !== 'confirmation' && (
                     <div className="mt-6 flex justify-between items-center">
-                        <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && business.staff.length <= 1)} className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
+                        <button onClick={handlePrevStep} disabled={step==='staff' || (step === 'dateTime' && (business.staff.length <= 1 || !!initialStaffId)) } className="px-4 py-2 text-sm font-semibold rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
                             Back
                         </button>
                         <button onClick={handleNextStep} disabled={isNextDisabled} className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800">

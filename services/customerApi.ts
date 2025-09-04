@@ -1,7 +1,9 @@
-import { PublicCustomerUser, NewPublicBookingData, Booking } from '../types';
+import { PublicCustomerUser, NewPublicBookingData, Booking, UpdateProfileData, ChangePasswordData, PublicBusinessProfile } from '../types';
 import { API_BASE_URL } from '../utils/env';
+import { getBusinessesByIds } from './marketplaceApi';
 
 const handleResponse = async (response: Response) => {
+    if (response.status === 204) return null;
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.message || `API request failed with status ${response.status}`);
@@ -52,6 +54,50 @@ export const submitReview = async (data: { booking_id: string, rating: number, c
         method: 'POST',
         headers: getAuthHeaders(token),
         body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+};
+
+export const updateMyProfile = async (data: UpdateProfileData, token: string): Promise<PublicCustomerUser> => {
+    const response = await fetch(`${API_BASE_URL}/customer/me`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+};
+
+export const changeMyPassword = async (data: ChangePasswordData, token: string): Promise<{ success: boolean }> => {
+    const response = await fetch(`${API_BASE_URL}/customer/me/password`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+};
+
+// --- Favorites API ---
+
+export const addFavorite = async (businessId: string, token: string): Promise<{ success: boolean }> => {
+    const response = await fetch(`${API_BASE_URL}/customer/me/favorites`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({ businessId }),
+    });
+    return handleResponse(response);
+};
+
+export const removeFavorite = async (businessId: string, token: string): Promise<{ success: boolean }> => {
+    const response = await fetch(`${API_BASE_URL}/customer/me/favorites/${businessId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(response);
+};
+
+export const fetchMyFavorites = async (token: string): Promise<PublicBusinessProfile[]> => {
+    const response = await fetch(`${API_BASE_URL}/customer/me/favorites`, {
+        headers: getAuthHeaders(token),
     });
     return handleResponse(response);
 };
