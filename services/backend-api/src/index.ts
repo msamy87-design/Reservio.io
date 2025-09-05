@@ -28,6 +28,22 @@ import { runSimulatedCronJobs } from './services/notificationService';
 import { swaggerSpec, swaggerOptions } from './swagger/swagger.config';
 import { performanceMonitoring } from './services/performanceMonitoringService';
 import { cacheService } from './services/cacheService';
+import { abTestService } from './services/abTestService';
+import { abTestMiddleware, createABTestRoutes } from './middleware/abTestMiddleware';
+import { pushNotificationService } from './services/pushNotificationService';
+import { pushNotificationMiddleware, createPushNotificationRoutes } from './middleware/pushNotificationMiddleware';
+import { analyticsService } from './services/analyticsService';
+import { analyticsMiddleware, createAnalyticsRoutes, trackBookingAnalytics, trackPaymentAnalytics, trackRegistrationAnalytics } from './middleware/analyticsMiddleware';
+import { recommendationEngine } from './services/recommendationEngine';
+import { recommendationMiddleware, createRecommendationRoutes, trackRecommendationInteraction } from './middleware/recommendationMiddleware';
+import { advancedMarketplaceService } from './services/advancedMarketplaceService';
+import { advancedMarketplaceMiddleware, createAdvancedMarketplaceRoutes, trackVerificationStatus } from './middleware/advancedMarketplaceMiddleware';
+import { inventoryManagementService } from './services/inventoryManagementService';
+import { inventoryMiddleware, createInventoryRoutes, trackInventoryEvents } from './middleware/inventoryMiddleware';
+import { businessIntelligenceService } from './services/businessIntelligenceService';
+import { businessIntelligenceMiddleware, createBusinessIntelligenceRoutes, trackBIEvents } from './middleware/businessIntelligenceMiddleware';
+import { collaborationService } from './services/collaborationService';
+import { collaborationMiddleware, createCollaborationRoutes, trackCollaborationEvents } from './middleware/collaborationMiddleware';
 
 // Load environment variables
 dotenv.config();
@@ -91,6 +107,30 @@ app.use(morgan('combined', { stream }));
 // Performance monitoring middleware
 app.use(performanceMonitoring.createMiddleware());
 
+// A/B testing middleware
+app.use(abTestMiddleware);
+
+// Push notification middleware
+app.use(pushNotificationMiddleware);
+
+// Analytics middleware
+app.use(analyticsMiddleware);
+
+// Recommendation middleware
+app.use(recommendationMiddleware);
+
+// Advanced marketplace middleware
+app.use(advancedMarketplaceMiddleware);
+
+// Inventory management middleware
+app.use(inventoryMiddleware);
+
+// Business intelligence middleware
+app.use(businessIntelligenceMiddleware);
+
+// Collaboration middleware
+app.use(collaborationMiddleware);
+
 // --- Core Middleware ---
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
   process.env.ALLOWED_ORIGINS.split(',') : 
@@ -122,6 +162,21 @@ app.set('trust proxy', 1);
 app.get('/api/health', async (req: express.Request, res: express.Response) => {
   const performanceSummary = performanceMonitoring.getPerformanceSummary();
   const cacheStats = await cacheService.getStats();
+  const abTestSummary = await abTestService.getTestSummary();
+  const pushStats = await pushNotificationService.getNotificationStats();
+  const pushConfig = pushNotificationService.isConfigured();
+  const analyticsStats = await analyticsService.getStats();
+  const analyticsConfig = analyticsService.isConfigured();
+  const recommendationStats = await recommendationEngine.getStats();
+  const recommendationConfig = recommendationEngine.isConfigured();
+  const marketplaceStats = await advancedMarketplaceService.getStats();
+  const marketplaceConfig = advancedMarketplaceService.isConfigured();
+  const inventoryStats = await inventoryManagementService.getStats();
+  const inventoryConfig = inventoryManagementService.isConfigured();
+  const biStats = await businessIntelligenceService.getStats();
+  const biConfig = businessIntelligenceService.isConfigured();
+  const collaborationStats = await collaborationService.getStats();
+  const collaborationConfig = collaborationService.isConfigured();
   
   res.status(200).json({ 
     status: 'ok', 
@@ -129,7 +184,36 @@ app.get('/api/health', async (req: express.Request, res: express.Response) => {
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     monitoring: performanceSummary,
-    cache: cacheStats
+    cache: cacheStats,
+    abTesting: abTestSummary,
+    pushNotifications: {
+      stats: pushStats,
+      configuration: pushConfig
+    },
+    analytics: {
+      stats: analyticsStats,
+      configuration: analyticsConfig
+    },
+    recommendations: {
+      stats: recommendationStats,
+      configuration: recommendationConfig
+    },
+    marketplace: {
+      stats: marketplaceStats,
+      configuration: marketplaceConfig
+    },
+    inventory: {
+      stats: inventoryStats,
+      configuration: inventoryConfig
+    },
+    businessIntelligence: {
+      stats: biStats,
+      configuration: biConfig
+    },
+    collaboration: {
+      stats: collaborationStats,
+      configuration: collaborationConfig
+    }
   });
 });
 
@@ -152,7 +236,15 @@ app.get('/api', (req: express.Request, res: express.Response) => {
       reviews: '/api/reviews',
       payments: '/api/payments',
       waitlist: '/api/waitlist',
-      webhooks: '/api/webhooks'
+      webhooks: '/api/webhooks',
+      abTesting: '/api/ab',
+      pushNotifications: '/api/push',
+      analytics: '/api/analytics',
+      recommendations: '/api/recommendations',
+      marketplace: '/api/marketplace',
+      inventory: '/api/inventory',
+      businessIntelligence: '/api/bi',
+      collaboration: '/api/collaboration'
     }
   });
 });
@@ -164,15 +256,39 @@ app.use('/api/webhooks', stripeWebhooksRouter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use('/api/businesses', businessesRouter);
-app.use('/api/bookings', bookingsRouter);
-app.use('/api/auth', authRouter);
+app.use('/api/businesses', trackRecommendationInteraction('business_view'), businessesRouter);
+app.use('/api/bookings', trackBookingAnalytics('booking_api'), trackRecommendationInteraction('booking'), bookingsRouter);
+app.use('/api/auth', trackRegistrationAnalytics, authRouter);
 app.use('/api/customer', customerRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/biz', bizRouter);
-app.use('/api/payments', paymentsRouter);
+app.use('/api/payments', trackPaymentAnalytics('payment_api'), paymentsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/waitlist', waitlistRouter);
+
+// A/B Testing routes
+app.use('/api/ab', createABTestRoutes(express));
+
+// Push Notification routes
+app.use('/api/push', createPushNotificationRoutes(express));
+
+// Analytics routes
+app.use('/api/analytics', createAnalyticsRoutes(express));
+
+// Recommendation routes
+app.use('/api/recommendations', createRecommendationRoutes(express));
+
+// Advanced Marketplace routes
+app.use('/api/marketplace', trackVerificationStatus(), createAdvancedMarketplaceRoutes(express));
+
+// Inventory Management routes
+app.use('/api/inventory', trackInventoryEvents(), createInventoryRoutes(express));
+
+// Business Intelligence routes
+app.use('/api/bi', trackBIEvents(), createBusinessIntelligenceRoutes(express));
+
+// Collaboration routes
+app.use('/api/collaboration', trackCollaborationEvents(), createCollaborationRoutes(express));
 
 
 // Error handling middleware
@@ -219,6 +335,9 @@ const server = app.listen(PORT, () => {
     environment: process.env.NODE_ENV || 'development',
     nodeVersion: process.version
   });
+  
+  // Initialize Socket.IO for real-time collaboration
+  collaborationService.initializeSocketIO(server);
   
   // Start background services
   runSimulatedCronJobs();

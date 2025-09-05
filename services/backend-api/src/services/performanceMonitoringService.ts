@@ -129,6 +129,21 @@ export class PerformanceMonitoringService {
   }
 
   /**
+   * Track custom events (generic)
+   */
+  public trackCustomEvent(eventType: string, eventData: Record<string, any> = {}): void {
+    if (!this.isEnabled) return;
+
+    this.recordEvent('CustomEvent', {
+      eventType,
+      ...eventData,
+      timestamp: new Date().toISOString()
+    });
+
+    this.recordMetric(`Custom/Events/${eventType}`, 1);
+  }
+
+  /**
    * Track API performance
    */
   public trackAPIPerformance(endpoint: string, method: string, statusCode: number, responseTime: number): void {
