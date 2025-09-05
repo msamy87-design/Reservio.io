@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { logger } from './logger';
 
 export interface JWTPayload {
@@ -26,11 +26,12 @@ export class JWTUtil {
   static generateAccessToken(payload: Omit<JWTPayload, 'type'>): string {
     try {
       const tokenPayload: JWTPayload = { ...payload, type: 'access' };
-      return jwt.sign(tokenPayload, this.getSecretKey(), {
+      const options = {
         expiresIn: process.env.JWT_EXPIRE || '15m',
         issuer: 'reservio-api',
         audience: 'reservio-client'
-      });
+      };
+      return jwt.sign(tokenPayload, this.getSecretKey(), options as any);
     } catch (error) {
       logger.error('Error generating access token:', error);
       throw new Error('Token generation failed');
@@ -43,11 +44,12 @@ export class JWTUtil {
   static generateRefreshToken(payload: Omit<JWTPayload, 'type'>): string {
     try {
       const tokenPayload: JWTPayload = { ...payload, type: 'refresh' };
-      return jwt.sign(tokenPayload, this.getSecretKey(), {
+      const options = {
         expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d',
         issuer: 'reservio-api',
         audience: 'reservio-client'
-      });
+      };
+      return jwt.sign(tokenPayload, this.getSecretKey(), options as any);
     } catch (error) {
       logger.error('Error generating refresh token:', error);
       throw new Error('Refresh token generation failed');

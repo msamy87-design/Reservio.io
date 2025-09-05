@@ -53,6 +53,7 @@ export interface BusinessAuthResponse {
     user: {
         id: string;
         businessName: string;
+        businessId: string;
         email: string;
         role: string;
         staffId: string;

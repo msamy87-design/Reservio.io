@@ -3,6 +3,7 @@ import * as api from '../services/api';
 import { User } from '../types';
 import { useToast } from './ToastContext';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 
 type AuthUser = Omit<User, 'passwordHash'>;
 
@@ -28,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user = await api.getCurrentUser();
       setCurrentUser(user);
     } catch (error) {
-      console.error("Session check failed:", error);
+      logger.error("Session check failed", { error: error instanceof Error ? error.message : error });
       setCurrentUser(null);
     } finally {
       setLoading(false);

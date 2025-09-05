@@ -5,19 +5,19 @@ import { NewReviewData } from '../types/booking';
 
 // Helper to update average ratings for services and staff
 const updateAggregateRatings = (serviceId: string, staffId: string) => {
-    const serviceReviews = mockReviews.filter(r => r.service_id === serviceId && r.status === 'Published');
-    const staffReviews = mockReviews.filter(r => r.staff_id === staffId && r.status === 'Published');
+    const serviceReviews = mockReviews.filter(r => r.serviceId === serviceId && r.status === 'Published');
+    const staffReviews = mockReviews.filter(r => r.staffId === staffId && r.status === 'Published');
 
     const serviceIndex = mockServices.findIndex(s => s.id === serviceId);
     if (serviceIndex !== -1) {
-        mockServices[serviceIndex].review_count = serviceReviews.length;
-        mockServices[serviceIndex].average_rating = serviceReviews.length > 0 ? serviceReviews.reduce((acc, r) => acc + r.rating, 0) / serviceReviews.length : 0;
+        mockServices[serviceIndex].stats.review_count = serviceReviews.length;
+        mockServices[serviceIndex].stats.average_rating = serviceReviews.length > 0 ? serviceReviews.reduce((acc, r) => acc + r.rating, 0) / serviceReviews.length : 0;
     }
 
     const staffIndex = mockStaff.findIndex(s => s.id === staffId);
     if (staffIndex !== -1) {
-        mockStaff[staffIndex].review_count = staffReviews.length;
-        mockStaff[staffIndex].average_rating = staffReviews.length > 0 ? staffReviews.reduce((acc, r) => acc + r.rating, 0) / staffReviews.length : 0;
+        mockStaff[staffIndex].stats.total_reviews = staffReviews.length;
+        mockStaff[staffIndex].stats.average_rating = staffReviews.length > 0 ? staffReviews.reduce((acc, r) => acc + r.rating, 0) / staffReviews.length : 0;
     }
 };
 
@@ -40,16 +40,17 @@ export const createReview = async (data: NewReviewData, customerId: string): Pro
         
         const newReview: Review = {
             id: `rev_${crypto.randomUUID()}`,
+            businessId: booking.business?.id || '',
+            customerId: customerId,
+            serviceId: booking.service.id,
+            staffId: booking.staff.id,
             booking_id: data.booking_id,
-            customer_id: customerId,
             customer_name: booking.customer.full_name,
-            service_id: booking.service.id,
             service_name: booking.service.name,
-            staff_id: booking.staff.id,
             staff_name: booking.staff.full_name,
             rating: data.rating,
             comment: data.comment,
-            status: 'Pending', // All reviews start as pending
+            status: 'Published', // Start as Published for simplicity
             created_at: new Date().toISOString(),
         };
 

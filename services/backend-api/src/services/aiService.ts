@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { Booking, AIGrowthInsight, Transaction } from "../../../../types";
 import { mockWaitlist, mockBookings, mockServices, mockTransactions } from "../data/mockData";
 import { sendWaitlistNotification } from "./notificationService";
@@ -9,7 +9,7 @@ if (!process.env.API_KEY) {
     console.warn("API_KEY environment variable not set. AI services will be disabled.");
 }
 
-const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
+const ai = process.env.API_KEY ? new GoogleGenerativeAI(process.env.API_KEY) : null;
 
 interface NoShowRiskPayload {
     serviceId: string;
@@ -43,22 +43,22 @@ export const getNoShowRiskScore = async (payload: NoShowRiskPayload): Promise<nu
     `;
     
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: Type.OBJECT,
+                    type: SchemaType.OBJECT,
                     properties: {
-                        riskScore: { type: Type.INTEGER }
+                        riskScore: { type: SchemaType.INTEGER }
                     },
                     required: ["riskScore"],
                 },
             },
         });
         
-        const jsonText = response.text.trim();
+        const jsonText = response.response.text().trim();
         const result = JSON.parse(jsonText);
         
         if (typeof result.riskScore === 'number') {
@@ -138,20 +138,20 @@ export const getAIGrowthInsights = async (businessId: string): Promise<AIGrowthI
     `;
     
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: Type.ARRAY,
+                    type: SchemaType.ARRAY,
                     items: {
-                        type: Type.OBJECT,
+                        type: SchemaType.OBJECT,
                         properties: {
-                            id: { type: Type.STRING },
-                            type: { type: Type.STRING, enum: ['pricing', 'bundling'] },
-                            title: { type: Type.STRING },
-                            description: { type: Type.STRING }
+                            id: { type: SchemaType.STRING },
+                            type: { type: SchemaType.STRING },
+                            title: { type: SchemaType.STRING },
+                            description: { type: SchemaType.STRING }
                         },
                         required: ["id", "type", "title", "description"]
                     }
@@ -159,7 +159,7 @@ export const getAIGrowthInsights = async (businessId: string): Promise<AIGrowthI
             },
         });
         
-        const jsonText = response.text.trim();
+        const jsonText = response.response.text().trim();
         const insights: AIGrowthInsight[] = JSON.parse(jsonText);
         console.log('[aiService] Gemini Growth Insights:', insights);
         return insights;

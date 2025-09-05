@@ -3,6 +3,7 @@ import { BusinessUser, CustomerUser, AdminUser, IBusinessUser, ICustomerUser, IA
 import { JWTUtil } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { AuthResponse, AdminAuthResponse, BusinessAuthResponse } from '../types/auth';
+import { Types } from 'mongoose';
 
 
 export const loginCustomer = async (email: string, password: string): Promise<AuthResponse> => {
@@ -26,7 +27,7 @@ export const loginCustomer = async (email: string, password: string): Promise<Au
 
         // Generate tokens
         const tokenPayload = {
-            userId: user._id.toString(),
+            userId: (user._id as Types.ObjectId).toString(),
             email: user.email,
             role: 'customer'
         };
@@ -42,7 +43,7 @@ export const loginCustomer = async (email: string, password: string): Promise<Au
         await user.save();
 
         const publicUser = {
-            id: user._id.toString(),
+            id: (user._id as Types.ObjectId).toString(),
             fullName: user.fullName,
             email: user.email,
             favoriteBusinessIds: user.favoriteBusinessIds
@@ -82,7 +83,7 @@ export const signupCustomer = async (fullName: string, email: string, password: 
 
         // Generate tokens
         const tokenPayload = {
-            userId: newUser._id.toString(),
+            userId: (newUser._id as Types.ObjectId).toString(),
             email: newUser.email,
             role: 'customer'
         };
@@ -94,7 +95,7 @@ export const signupCustomer = async (fullName: string, email: string, password: 
         await newUser.save();
 
         const publicUser = {
-            id: newUser._id.toString(),
+            id: (newUser._id as Types.ObjectId).toString(),
             fullName: newUser.fullName,
             email: newUser.email,
             favoriteBusinessIds: newUser.favoriteBusinessIds
@@ -134,7 +135,7 @@ export const loginBusiness = async (email: string, password: string): Promise<Bu
 
         // Generate tokens
         const tokenPayload = {
-            userId: user._id.toString(),
+            userId: (user._id as Types.ObjectId).toString(),
             email: user.email,
             role: user.role
         };
@@ -149,8 +150,9 @@ export const loginBusiness = async (email: string, password: string): Promise<Bu
         await user.save();
 
         const publicUser = {
-            id: user._id.toString(),
+            id: (user._id as Types.ObjectId).toString(),
             businessName: user.businessName,
+            businessId: user.businessId || (user._id as Types.ObjectId).toString(),
             email: user.email,
             role: user.role,
             staffId: user.staffId
@@ -183,14 +185,14 @@ export const signupBusiness = async (businessName: string, email: string, passwo
             email,
             password,
             role: 'Owner',
-            staffId: '', // Will be set when staff record is created
+            staffId: new Types.ObjectId().toString(), // Generate a unique staffId
         });
 
         await newUser.save();
 
         // Generate tokens
         const tokenPayload = {
-            userId: newUser._id.toString(),
+            userId: (newUser._id as Types.ObjectId).toString(),
             email: newUser.email,
             role: newUser.role
         };
@@ -202,8 +204,9 @@ export const signupBusiness = async (businessName: string, email: string, passwo
         await newUser.save();
 
         const publicUser = {
-            id: newUser._id.toString(),
+            id: (newUser._id as Types.ObjectId).toString(),
             businessName: newUser.businessName,
+            businessId: newUser.businessId || (newUser._id as Types.ObjectId).toString(),
             email: newUser.email,
             role: newUser.role,
             staffId: newUser.staffId
@@ -243,7 +246,7 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
 
         // Generate tokens
         const tokenPayload = {
-            userId: user._id.toString(),
+            userId: (user._id as Types.ObjectId).toString(),
             email: user.email,
             role: user.role
         };
@@ -258,7 +261,7 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
         await user.save();
 
         const publicUser = {
-            id: user._id.toString(),
+            id: (user._id as Types.ObjectId).toString(),
             fullName: user.fullName,
             email: user.email,
             role: user.role
@@ -303,7 +306,7 @@ export const refreshAccessToken = async (refreshToken: string, userType: 'custom
 
         // Generate new tokens
         const tokenPayload = {
-            userId: user._id.toString(),
+            userId: (user._id as Types.ObjectId).toString(),
             email: user.email,
             role: decoded.role
         };

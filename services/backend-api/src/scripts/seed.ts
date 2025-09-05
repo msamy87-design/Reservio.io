@@ -129,7 +129,7 @@ const seedDatabase = async () => {
     await staff2.save();
 
     // Update business owner with staff ID
-    businessOwner.staffId = staff1._id.toString();
+    businessOwner.staffId = (staff1._id as any).toString();
     await businessOwner.save();
 
     logger.info('Created staff members');

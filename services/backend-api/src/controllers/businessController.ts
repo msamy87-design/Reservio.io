@@ -1,6 +1,7 @@
 
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
+import { logger } from '../utils/logger';
 
 export const search = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -22,7 +23,7 @@ export const search = async (req: Request, res: Response): Promise<void> => {
         );
         res.status(200).json(results);
     } catch (error) {
-        console.error('Error searching businesses:', error);
+        logger.error('Error searching businesses:', { error: error instanceof Error ? error.message : error, stack: error instanceof Error ? error.stack : undefined });
         res.status(500).json({ message: 'An error occurred while searching for businesses.' });
     }
 };
@@ -37,7 +38,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
             res.status(404).json({ message: 'Business not found.' });
         }
     } catch (error) {
-        console.error('Error fetching business by ID:', error);
+        logger.error('Error fetching business by ID:', { error: error instanceof Error ? error.message : error, stack: error instanceof Error ? error.stack : undefined });
         res.status(500).json({ message: 'An error occurred while fetching the business profile.' });
     }
 };
@@ -52,7 +53,7 @@ export const getMultipleByIds = async (req: Request, res: Response): Promise<voi
         const businesses = await businessService.getBusinessesByIds(ids);
         res.status(200).json(businesses);
     } catch (error) {
-        console.error('Error fetching multiple businesses by IDs:', error);
+        logger.error('Error fetching multiple businesses by IDs:', { error: error instanceof Error ? error.message : error, stack: error instanceof Error ? error.stack : undefined });
         res.status(500).json({ message: 'An error occurred while fetching business profiles.' });
     }
 }
@@ -68,7 +69,7 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
         const availability = await businessService.getAvailability(id, serviceId as string, staffId as string, date as string);
         res.status(200).json(availability);
     } catch (error) {
-        console.error('Error fetching availability:', error);
+        logger.error('Error fetching availability:', { error: error instanceof Error ? error.message : error, stack: error instanceof Error ? error.stack : undefined });
         res.status(500).json({ message: 'An error occurred while fetching availability.' });
     }
 };

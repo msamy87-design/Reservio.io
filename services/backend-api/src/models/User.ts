@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 // Business User Model
 export interface IBusinessUser extends Document {
   businessName: string;
+  businessId?: string;
   email: string;
   password: string;
   role: 'Owner' | 'Manager' | 'Assistant';
@@ -23,6 +24,10 @@ const businessUserSchema = new Schema<IBusinessUser>({
     required: [true, 'Business name is required'],
     trim: true,
     maxlength: [100, 'Business name cannot exceed 100 characters']
+  },
+  businessId: {
+    type: String,
+    trim: true
   },
   email: {
     type: String,
@@ -77,8 +82,7 @@ businessUserSchema.methods.comparePassword = async function(candidatePassword: s
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Indexes for performance
-businessUserSchema.index({ email: 1 });
+// Indexes for performance (email index already created by unique: true)
 businessUserSchema.index({ isActive: 1 });
 
 export const BusinessUser = mongoose.model<IBusinessUser>('BusinessUser', businessUserSchema);
@@ -159,8 +163,7 @@ customerUserSchema.methods.comparePassword = async function(candidatePassword: s
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Indexes
-customerUserSchema.index({ email: 1 });
+// Indexes (email index already created by unique: true)
 customerUserSchema.index({ isActive: 1 });
 
 export const CustomerUser = mongoose.model<ICustomerUser>('CustomerUser', customerUserSchema);
@@ -230,7 +233,6 @@ adminUserSchema.methods.comparePassword = async function(candidatePassword: stri
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Indexes
-adminUserSchema.index({ email: 1 });
+// Indexes (email index already created by unique: true)
 
 export const AdminUser = mongoose.model<IAdminUser>('AdminUser', adminUserSchema);

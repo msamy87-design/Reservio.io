@@ -103,15 +103,15 @@ export const getAvailability = async (businessId: string, serviceId: string, sta
     const targetDate = dateFns.parse(date, 'yyyy-MM-dd', new Date());
     const dayOfWeek = dateFns.format(targetDate, 'eeee').toLowerCase() as keyof PublicBusinessProfile['hours'];
     
+    const businessStaff = mockStaff.filter(s => s.businessId === businessId);
     const relevantStaff = staffId && staffId !== 'any'
-        ? business.staff.filter(s => s.id === staffId)
-        : business.staff;
+        ? businessStaff.filter(s => s.id === staffId)
+        : businessStaff;
 
     const availabilityByStaff: Record<string, string[]> = {};
 
     for (const staff of relevantStaff) {
-        const fullStaffDetails = mockStaff.find(s => s.id === staff.id);
-        const staffSchedule = fullStaffDetails?.schedule[dayOfWeek as DayOfWeek];
+        const staffSchedule = staff.schedule[dayOfWeek as DayOfWeek];
         if (!staffSchedule || !staffSchedule.is_working) continue;
 
         const staffBookings = mockBookings.filter(b =>

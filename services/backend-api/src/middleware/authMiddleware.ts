@@ -54,7 +54,7 @@ export const protectCustomer = async (req: Request, res: Response, next: NextFun
         }
 
         (req as AuthenticatedRequest).customer = {
-            id: user._id.toString(),
+            id: (user._id as any).toString(),
             email: user.email,
             fullName: user.fullName
         };
@@ -90,7 +90,7 @@ export const protectBusiness = async (req: Request, res: Response, next: NextFun
         }
 
         (req as AuthenticatedBusinessRequest).business = {
-            id: user._id.toString(),
+            id: (user._id as any).toString(),
             email: user.email,
             businessName: user.businessName,
             role: user.role
@@ -127,7 +127,7 @@ export const protectAdmin = async (req: Request, res: Response, next: NextFuncti
         }
 
         (req as AuthenticatedAdminRequest).admin = {
-            id: user._id.toString(),
+            id: (user._id as any).toString(),
             email: user.email,
             fullName: user.fullName,
             role: user.role

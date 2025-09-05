@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { DashboardIcon, KeyIcon, SettingsIcon, BusinessIcon, UsersIcon, CalendarIcon, TagIcon, BriefcaseIcon, ChartBarIcon, UserCircleIcon, ArrowRightOnRectangleIcon, MegaphoneIcon, StarIcon, ArchiveBoxIcon, SunIcon, MoonIcon, ComputerDesktopIcon, CheckIcon, ShoppingCartIcon, ClipboardDocumentListIcon } from './Icons';
 import ToastContainer from './ToastContainer';
@@ -13,7 +13,7 @@ interface NavItemProps {
   label: string;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
+const NavItem: React.FC<NavItemProps> = React.memo(({ to, icon, label }) => (
   <NavLink
     to={to}
     className={({ isActive }) =>
@@ -27,7 +27,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
     {icon}
     <span className="ml-4">{label}</span>
   </NavLink>
-);
+));
 
 const navConfig: { to: string; icon: React.FC<any>; label: string; roles: Staff['role'][] }[] = [
     { to: '/biz/dashboard', icon: DashboardIcon, label: 'Dashboard', roles: ['Owner', 'Manager', 'Assistant', 'Stylist'] },
@@ -70,9 +70,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
   const userRole = currentUser?.role;
 
-  const visibleNavItems = navConfig.filter(item => userRole && item.roles.includes(userRole));
-  const visibleDeveloperItems = developerNavConfig.filter(item => userRole && item.roles.includes(userRole));
-  const visibleSettingsItems = settingsNavConfig.filter(item => userRole && item.roles.includes(userRole));
+  const visibleNavItems = useMemo(() => 
+    navConfig.filter(item => userRole && item.roles.includes(userRole)), 
+    [userRole]
+  );
+  
+  const visibleDeveloperItems = useMemo(() => 
+    developerNavConfig.filter(item => userRole && item.roles.includes(userRole)), 
+    [userRole]
+  );
+  
+  const visibleSettingsItems = useMemo(() => 
+    settingsNavConfig.filter(item => userRole && item.roles.includes(userRole)), 
+    [userRole]
+  );
+
+  const handleProfileMenuToggle = useCallback(() => {
+    setIsProfileMenuOpen(prev => !prev);
+  }, []);
+
+  const handlePosModalOpen = useCallback(() => {
+    setIsPosModalOpen(true);
+  }, []);
+
+  const handlePosModalClose = useCallback(() => {
+    setIsPosModalOpen(false);
+  }, []);
 
   return (
     <>
@@ -114,7 +137,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Business Portal</h1>
           <div className="flex items-center gap-4">
             <button
-                onClick={() => setIsPosModalOpen(true)}
+                onClick={handlePosModalOpen}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
                 <ShoppingCartIcon className="h-5 w-5" />
@@ -122,7 +145,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </button>
             <div className="relative" ref={profileMenuRef}>
                 <button
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                onClick={handleProfileMenuToggle}
                 className="w-9 h-9 bg-gray-600 rounded-full flex items-center justify-center text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                 >
                 {currentUser?.businessName.charAt(0).toUpperCase()}
@@ -172,7 +195,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
       <ToastContainer />
     </div>
-    <StandalonePosModal isOpen={isPosModalOpen} onClose={() => setIsPosModalOpen(false)} />
+    <StandalonePosModal isOpen={isPosModalOpen} onClose={handlePosModalClose} />
     </>
   );
 };

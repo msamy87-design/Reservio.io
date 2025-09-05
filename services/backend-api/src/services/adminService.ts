@@ -46,7 +46,7 @@ export const updateBusinessStatus = async (id: string, status: BusinessVerificat
             if (index === -1) {
                 return reject(new Error('Business not found'));
             }
-            mockBusinesses[index].verification_status = status;
+            mockBusinesses[index].verification_status = status as any;
             
             // FIX: Return BusinessForAdmin type
             const { name, owner_email, verification_status, latitude, longitude } = mockBusinesses[index];

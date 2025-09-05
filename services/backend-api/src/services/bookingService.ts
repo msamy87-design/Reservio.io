@@ -19,10 +19,31 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
             if (!customer) {
                 customer = {
                     id: `cust_${crypto.randomUUID()}`,
-                    full_name: data.customer.full_name,
+                    businessId: data.businessId,
+                    fullName: data.customer.full_name,
                     email: data.customer.email,
-                    phone: data.customer.phone,
+                    phone: data.customer.phone || '',
                     notes: 'New customer from online booking.',
+                    preferences: {
+                        preferred_staff_ids: [],
+                        communication_method: 'email' as const,
+                        reminder_preferences: {
+                            email_reminders: true,
+                            sms_reminders: false,
+                            reminder_time: 24
+                        }
+                    },
+                    stats: {
+                        total_bookings: 0,
+                        completed_bookings: 0,
+                        no_shows: 0,
+                        cancellations: 0,
+                        total_spent: 0,
+                        average_rating_given: 0
+                    },
+                    isActive: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
                 };
                 mockCustomers.push(customer);
             }
@@ -35,7 +56,7 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
                 staffId: data.staffId,
                 startTime: data.startTime,
                 customer: {
-                    full_name: customer.full_name,
+                    full_name: customer.fullName,
                     email: customer.email,
                 },
             });
@@ -45,9 +66,9 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
                 start_at: startTime.toISOString(),
                 end_at: endTime.toISOString(),
                 status: 'confirmed',
-                customer: { id: customer.id, full_name: customer.full_name },
+                customer: { id: customer.id, full_name: customer.fullName },
                 service: { id: service.id, name: service.name, duration_minutes: service.duration_minutes },
-                staff: { id: staff.id, full_name: staff.full_name },
+                staff: { id: staff.id, full_name: staff.fullName },
                 business: { id: data.businessId, name: 'Business Name' },
                 payment_status: data.paymentIntentId ? 'deposit_paid' : 'unpaid',
                 payment_intent_id: data.paymentIntentId || null,
