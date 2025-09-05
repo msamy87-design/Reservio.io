@@ -10,6 +10,11 @@ import { PublicBusinessProfile } from '../types';
 import BusinessCard from '../components/BusinessCard';
 import MarketplaceFooter from '../components/MarketplaceFooter';
 import { BusinessCardSkeleton } from '../components/SkeletonLoader';
+import TrendingServices from '../components/TrendingServices';
+import LocationBasedFeatures from '../components/LocationBasedFeatures';
+import SocialProofTrust from '../components/SocialProofTrust';
+import ValuePropositions from '../components/ValuePropositions';
+import ForBusinessOwners from '../components/ForBusinessOwners';
 
 const categories = [
     { name: 'Hair Salons', icon: ScissorsIcon, query: 'haircut' },
@@ -150,8 +155,17 @@ const HomePage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Trending Services Section */}
+            <TrendingServices />
+
+            {/* Location-Based Features Section */}
+            <LocationBasedFeatures />
+
+            {/* Value Propositions Section */}
+            <ValuePropositions />
+
             {/* How It Works Section */}
-            <div className="bg-white dark:bg-gray-800 py-16 sm:py-24">
+            <div className="bg-gray-50 dark:bg-gray-900 py-16 sm:py-24">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-bold tracking-tight text-center text-gray-900 dark:text-white">Book in 3 Easy Steps</h2>
                     <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
@@ -168,8 +182,11 @@ const HomePage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Social Proof & Trust Section */}
+            <SocialProofTrust />
+
             {/* Featured Businesses Section */}
-            <div className="py-16 sm:py-24">
+            <div className="py-16 sm:py-24 bg-white dark:bg-gray-800">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-bold tracking-tight text-center text-gray-900 dark:text-white">Featured Salons & Barbers</h2>
                      {isLoading ? (
@@ -191,6 +208,9 @@ const HomePage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* For Business Owners Section */}
+            <ForBusinessOwners />
             
             <MarketplaceFooter />
         </div>

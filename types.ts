@@ -8,6 +8,8 @@ export type ReviewStatus = 'Pending' | 'Published' | 'Hidden';
 export type BusinessVerificationStatus = 'pending' | 'approved' | 'suspended';
 export type MarketingChannel = 'Email' | 'SMS' | 'Social';
 export type AudienceType = 'all' | 'frequent' | 'lapsed' | 'new';
+export type TrendingPeriod = 'week' | 'month' | 'season';
+export type SeasonType = 'spring' | 'summer' | 'fall' | 'winter';
 
 export interface DaySchedule {
   is_working: boolean;
@@ -440,4 +442,59 @@ export interface BusinessForAdmin {
     verification_status: BusinessVerificationStatus;
     latitude?: number;
     longitude?: number;
+}
+
+// Trending Services & Marketplace Features
+export interface TrendingService {
+    id: string;
+    name: string;
+    icon: React.ComponentType<any>;
+    query: string;
+    booking_count: number;
+    growth_percentage: number;
+    average_price: number;
+    average_duration: number;
+    popular_times: string[];
+    is_seasonal?: boolean;
+    season?: SeasonType;
+    trending_period: TrendingPeriod;
+}
+
+export interface SeasonalHighlight {
+    id: string;
+    title: string;
+    description: string;
+    services: string[];
+    image_url: string;
+    season: SeasonType;
+    discount_percentage?: number;
+    cta_text: string;
+    cta_link: string;
+}
+
+export interface PopularLocation {
+    id: string;
+    name: string;
+    business_count: number;
+    average_rating: number;
+    popular_services: string[];
+    coordinates: {
+        lat: number;
+        lng: number;
+    };
+}
+
+export interface CustomerReview {
+    id: string;
+    customer_name: string;
+    customer_image?: string;
+    business_name: string;
+    service_name: string;
+    rating: number;
+    comment: string;
+    before_image?: string;
+    after_image?: string;
+    date: string;
+    is_featured: boolean;
+    helpful_count: number;
 }
