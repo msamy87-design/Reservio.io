@@ -6,6 +6,8 @@ import MarketplaceHeader from '../components/MarketplaceHeader';
 import BusinessCard from '../components/BusinessCard';
 import MapView from '../components/MapView';
 import MarketplaceFooter from '../components/MarketplaceFooter';
+import SearchFiltersComponent from '../components/SearchFilters';
+import { SearchResultsSkeleton } from '../components/SkeletonLoader';
 import { StarIcon, MapIcon, ListBulletIcon } from '../components/Icons';
 
 const SearchResultsPage: React.FC = () => {
@@ -23,6 +25,11 @@ const SearchResultsPage: React.FC = () => {
         maxPrice: Number(searchParams.get('maxPrice')) || undefined,
         minRating: Number(searchParams.get('minRating')) || undefined,
         date: searchParams.get('date') || undefined,
+        maxDistance: Number(searchParams.get('maxDistance')) || undefined,
+        priceTiers: searchParams.getAll('priceTiers').length > 0 ? searchParams.getAll('priceTiers') as any : undefined,
+        amenities: searchParams.getAll('amenities').length > 0 ? searchParams.getAll('amenities') as any : undefined,
+        isOpenNow: searchParams.get('isOpenNow') === 'true' || undefined,
+        hasAvailability: searchParams.get('hasAvailability') === 'true' || undefined,
     };
     const [filters, setFilters] = useState<Omit<SearchFilters, 'lat'|'lon'>>(initialFilters);
     
@@ -58,13 +65,31 @@ const SearchResultsPage: React.FC = () => {
         
         // Update URL
         const currentParams = new URLSearchParams(location.search);
+        
+        // Keep service and location
+        if (searchOptions.service) currentParams.set('service', searchOptions.service);
+        if (searchOptions.location) currentParams.set('location', searchOptions.location);
+        if (searchOptions.lat) currentParams.set('lat', searchOptions.lat.toString());
+        if (searchOptions.lon) currentParams.set('lon', searchOptions.lon.toString());
+        
+        // Clear all filter params first
+        ['minPrice', 'maxPrice', 'minRating', 'date', 'maxDistance', 'priceTiers', 'amenities', 'isOpenNow', 'hasAvailability'].forEach(param => {
+            currentParams.delete(param);
+        });
+        
+        // Set new filter params
         Object.entries(updatedFilters).forEach(([key, value]) => {
-            if (value !== undefined && value !== 0 && value !== '') {
-                currentParams.set(key, String(value));
-            } else {
-                currentParams.delete(key);
+            if (value !== undefined && value !== false && (Array.isArray(value) ? value.length > 0 : value !== '')) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => currentParams.append(key, String(v)));
+                } else if (typeof value === 'boolean' && value) {
+                    currentParams.set(key, 'true');
+                } else {
+                    currentParams.set(key, String(value));
+                }
             }
         });
+        
         navigate(`${location.pathname}?${currentParams.toString()}`);
     };
     
@@ -95,46 +120,51 @@ const SearchResultsPage: React.FC = () => {
                 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Filters Sidebar */}
-                    <aside className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md h-fit">
-                        <h3 className="text-lg font-semibold mb-4">Filter Results</h3>
-                        {/* Price Filter */}
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price Range</label>
-                            <div className="flex items-center gap-2 mt-1">
-                                <input type="number" placeholder="Min" value={filters.minPrice || ''} onChange={e => handleFilterChange({ minPrice: Number(e.target.value) || undefined })} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
-                                <span>-</span>
-                                <input type="number" placeholder="Max" value={filters.maxPrice || ''} onChange={e => handleFilterChange({ maxPrice: Number(e.target.value) || undefined })} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
-                            </div>
-                        </div>
-                        {/* Rating Filter */}
-                        <div className="mb-4">
-                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Minimum Rating</label>
-                             <div className="flex gap-1 mt-1">
-                                {[4, 3, 2, 1].map(rating => (
-                                    <button key={rating} onClick={() => handleFilterChange({ minRating: filters.minRating === rating ? undefined : rating })} className={`flex items-center gap-1 p-2 border rounded-md ${filters.minRating === rating ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
-                                        {rating} <StarIcon className="h-4 w-4 text-yellow-400" />
-                                    </button>
-                                ))}
-                             </div>
-                        </div>
-                        {/* Availability Filter */}
-                        <div>
-                            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Available On</label>
-                            <input id="date-filter" type="date" value={filters.date || ''} onChange={e => handleFilterChange({ date: e.target.value || undefined })} className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
-                        </div>
+                    <aside className="lg:col-span-1">
+                        <SearchFiltersComponent
+                            filters={filters}
+                            onFiltersChange={handleFilterChange}
+                            hasLocation={!!(searchOptions.lat && searchOptions.lon)}
+                        />
                     </aside>
                     
                     {/* Results Content */}
                     <div className="lg:col-span-3">
-                         {isLoading && <p>Loading results...</p>}
+                         {isLoading && <SearchResultsSkeleton count={6} />}
                         {error && <p className="text-red-500">{error}</p>}
-                        {!isLoading && !error && businesses.length === 0 && <p>No businesses found matching your criteria.</p>}
+                        {!isLoading && !error && businesses.length === 0 && (
+                            <div className="text-center py-12">
+                                <div className="mx-auto h-24 w-24 text-gray-400 dark:text-gray-600 mb-4">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">No businesses found</h3>
+                                <p className="text-gray-500 dark:text-gray-400">Try adjusting your search criteria or browsing different categories.</p>
+                            </div>
+                        )}
 
                         {!isLoading && !error && businesses.length > 0 && (
                             view === 'list' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {businesses.map(business => <BusinessCard key={business.id} business={business} />)}
-                                </div>
+                                <>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {businesses.length} {businesses.length === 1 ? 'result' : 'results'} found
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        {businesses.map(business => (
+                                            <BusinessCard 
+                                                key={business.id} 
+                                                business={business}
+                                                userLocation={searchOptions.lat && searchOptions.lon ? {
+                                                    lat: searchOptions.lat,
+                                                    lon: searchOptions.lon
+                                                } : undefined}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
                             ) : (
                                 <div className="h-[70vh] rounded-lg overflow-hidden shadow-md">
                                     <MapView businesses={businesses} />

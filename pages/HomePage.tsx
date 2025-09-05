@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchIcon, BusinessIcon, ScissorsIcon, SparklesIcon, PaintBrushIcon, UserGroupIcon, CalendarDaysIcon, CheckBadgeIcon } from '../components/Icons';
 import MarketplaceHeader from '../components/MarketplaceHeader';
+import SearchInput from '../components/SearchInput';
 import { searchBusinesses } from '../services/marketplaceApi';
 import { PublicBusinessProfile } from '../types';
 import BusinessCard from '../components/BusinessCard';
 import MarketplaceFooter from '../components/MarketplaceFooter';
+import { BusinessCardSkeleton } from '../components/SkeletonLoader';
 
 const categories = [
     { name: 'Hair Salons', icon: ScissorsIcon, query: 'haircut' },
@@ -104,25 +106,21 @@ const HomePage: React.FC = () => {
                         <form onSubmit={handleSearch} className="mt-10 flex flex-col sm:flex-row items-center w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 p-3 rounded-lg shadow-2xl gap-2">
                             <div className="flex-1 w-full">
                                 <label htmlFor="service-search" className="sr-only">Service</label>
-                                <input
-                                    id="service-search"
-                                    type="text"
+                                <SearchInput
                                     value={service}
-                                    onChange={(e) => setService(e.target.value)}
-                                    className="w-full border-0 bg-transparent py-2.5 px-3 text-gray-900 dark:text-white placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                                    onChange={setService}
                                     placeholder="Service (e.g., haircut, manicure)"
+                                    type="service"
                                 />
                             </div>
                             <div className="hidden sm:block h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
                             <div className="flex-1 w-full">
                                 <label htmlFor="location-search" className="sr-only">Location</label>
-                                <input
-                                    id="location-search"
-                                    type="text"
+                                <SearchInput
                                     value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    className="w-full border-0 bg-transparent py-2.5 px-3 text-gray-900 dark:text-white placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                                    placeholder="Location (e.g., Anytown)"
+                                    onChange={setLocation}
+                                    placeholder="Location (e.g., New York, NY)"
+                                    type="location"
                                 />
                             </div>
                             <button
@@ -175,11 +173,19 @@ const HomePage: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-bold tracking-tight text-center text-gray-900 dark:text-white">Featured Salons & Barbers</h2>
                      {isLoading ? (
-                        <p className="text-center mt-8">Loading...</p>
+                        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[1, 2, 3].map(i => (
+                                <BusinessCardSkeleton key={i} />
+                            ))}
+                        </div>
                     ) : (
                         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {featuredBusinesses.map(business => (
-                                <BusinessCard key={business.id} business={business} />
+                                <BusinessCard 
+                                    key={business.id} 
+                                    business={business}
+                                    showActions={false}
+                                />
                             ))}
                         </div>
                     )}

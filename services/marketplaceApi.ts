@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../utils/env';
-import { PublicBusinessProfile, NewPublicBookingData, Booking, PaymentIntentDetails, NewWaitlistEntryData } from '../types';
+import { PublicBusinessProfile, NewPublicBookingData, Booking, PaymentIntentDetails, NewWaitlistEntryData, PriceTier, BusinessAmenity } from '../types';
 
 const handleResponse = async (response: Response) => {
     if (response.status === 204) return null;
@@ -17,6 +17,11 @@ export interface SearchFilters {
     date?: string;
     lat?: number | null;
     lon?: number | null;
+    maxDistance?: number;
+    priceTiers?: PriceTier[];
+    amenities?: BusinessAmenity[];
+    isOpenNow?: boolean;
+    hasAvailability?: boolean;
 }
 
 export const searchBusinesses = async (service: string, location: string, filters: SearchFilters): Promise<PublicBusinessProfile[]> => {
@@ -29,6 +34,15 @@ export const searchBusinesses = async (service: string, location: string, filter
     if (filters.date) params.append('date', filters.date);
     if (filters.lat) params.append('lat', filters.lat.toString());
     if (filters.lon) params.append('lon', filters.lon.toString());
+    if (filters.maxDistance) params.append('maxDistance', filters.maxDistance.toString());
+    if (filters.priceTiers && filters.priceTiers.length > 0) {
+        filters.priceTiers.forEach(tier => params.append('priceTiers', tier));
+    }
+    if (filters.amenities && filters.amenities.length > 0) {
+        filters.amenities.forEach(amenity => params.append('amenities', amenity));
+    }
+    if (filters.isOpenNow) params.append('isOpenNow', 'true');
+    if (filters.hasAvailability) params.append('hasAvailability', 'true');
 
     const response = await fetch(`${API_BASE_URL}/businesses/search?${params.toString()}`);
     return handleResponse(response);

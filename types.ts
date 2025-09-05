@@ -351,6 +351,19 @@ export interface PublicReview {
     created_at: string;
 }
 
+export type PriceTier = '$' | '$$' | '$$$';
+export type BusinessAmenity = 'wifi' | 'parking' | 'wheelchair_accessible' | 'credit_cards' | 'walk_ins' | 'online_booking';
+
+export interface BusinessHours {
+    monday: { open: string; close: string; is_open: boolean };
+    tuesday: { open: string; close: string; is_open: boolean };
+    wednesday: { open: string; close: string; is_open: boolean };
+    thursday: { open: string; close: string; is_open: boolean };
+    friday: { open: string; close: string; is_open: boolean };
+    saturday: { open: string; close: string; is_open: boolean };
+    sunday: { open: string; close: string; is_open: boolean };
+}
+
 export interface PublicBusinessProfile {
     id: string;
     name: string;
@@ -364,6 +377,19 @@ export interface PublicBusinessProfile {
     reviews: PublicReview[];
     latitude?: number;
     longitude?: number;
+    // New enhanced fields
+    price_tier?: PriceTier;
+    amenities?: BusinessAmenity[];
+    next_available_slot?: string | null;
+    distance_miles?: number;
+    is_open_now?: boolean;
+    business_hours?: BusinessHours;
+    image_gallery?: string[];
+    is_featured?: boolean;
+    is_new_business?: boolean;
+    response_time_minutes?: number;
+    booking_completion_rate?: number;
+    recent_booking_count?: number;
 }
 
 export interface NewPublicBookingData {
