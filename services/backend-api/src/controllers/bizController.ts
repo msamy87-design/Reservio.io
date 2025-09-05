@@ -14,7 +14,7 @@ import {
     BookingStatus,
     NewProductData,
     NewTransactionData,
-} from '../types/booking';
+} from '../../../../types';
 import { getAIGrowthInsights } from '../services/aiService';
 
 // Since this is a mock, we'll just send back success/failure
@@ -179,3 +179,7 @@ export const getGrowthInsights = async (req: AuthenticatedBusinessRequest, res: 
         res.status(500).json({ message: 'Failed to generate AI insights' });
     }
 };
+
+// Waitlist is public, so no controller here.
+export const getWaitlist = getAll(bizService.getWaitlist);
+export const deleteWaitlistEntry = deleteItem(bizService.deleteWaitlistEntry);

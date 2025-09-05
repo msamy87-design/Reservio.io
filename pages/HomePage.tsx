@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchIcon, BusinessIcon, ScissorsIcon, SparklesIcon, PaintBrushIcon, UserGroupIcon, CalendarDaysIcon, CheckBadgeIcon } from '../components/Icons';
@@ -55,7 +56,8 @@ const HomePage: React.FC = () => {
         const fetchFeatured = async () => {
             setIsLoading(true);
             try {
-                const results = await searchBusinesses('', ''); 
+                // FIX: Added an empty object for the filters argument.
+                const results = await searchBusinesses('', '', {}); 
                 setFeaturedBusinesses(results.slice(0, 3));
             } catch (error) {
                 console.error("Failed to fetch featured businesses:", error);

@@ -1,5 +1,4 @@
 
-
 import { mockCustomerUsers, mockAdminUsers } from '../data/mockData';
 import { AuthResponse, AdminAuthResponse } from '../types/auth';
 import { PublicCustomerUser, CustomerUser } from '../types/customer';
@@ -45,7 +44,6 @@ export const signupCustomer = async (full_name: string, email: string, password:
                 full_name,
                 email,
                 passwordHash: mockHash(password),
-                // FIX: Initialize favoriteBusinessIds for new users to satisfy type requirements.
                 favoriteBusinessIds: [],
             };
             mockCustomerUsers.push(newUser);
@@ -62,7 +60,7 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             const adminUser = mockAdminUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-            if (!adminUser || !mockCompare(password, adminUser.passwordHash)) {
+            if (!adminUser || !adminUser.passwordHash || !mockCompare(password, adminUser.passwordHash)) {
                 return reject(new Error('Invalid admin credentials.'));
             }
             const { passwordHash, ...publicUser } = adminUser;

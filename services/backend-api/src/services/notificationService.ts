@@ -1,5 +1,4 @@
 
-
 import { mockBookings, mockBusinessSettings, mockCustomers } from '../data/mockData';
 import { Booking } from '../../../../types';
 

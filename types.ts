@@ -1,42 +1,60 @@
 // types.ts
 
-// --- General ---
-export type Currency = 'USD' | 'EUR' | 'GBP';
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+export type Currency = 'USD' | 'EUR' | 'GBP';
+export type StaffRole = 'Owner' | 'Manager' | 'Assistant' | 'Stylist';
+export type BookingStatus = 'confirmed' | 'completed' | 'cancelled' | 'pending';
+export type ReviewStatus = 'Pending' | 'Published' | 'Hidden';
+export type BusinessVerificationStatus = 'pending' | 'approved' | 'suspended';
+export type MarketingChannel = 'Email' | 'SMS' | 'Social';
+export type AudienceType = 'all' | 'frequent' | 'lapsed' | 'new';
 
-// --- User & Auth ---
-export interface User {
+export interface DaySchedule {
+  is_working: boolean;
+  start_time: string; // "HH:MM"
+  end_time: string; // "HH:MM"
+}
+
+export type StaffSchedule = Record<DayOfWeek, DaySchedule>;
+
+export interface BusinessHours {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
+export interface BusinessSettings {
   id: string;
-  businessName: string;
-  email: string;
-  role: 'Owner' | 'Manager' | 'Assistant' | 'Stylist';
-  staffId: string; // The ID of the staff member this user corresponds to
-}
-
-export interface AdminUser {
-    id: string;
+  profile: {
+    name: string;
     email: string;
-    full_name: string;
-    role: 'superadmin';
+    phone: string;
+    address: string;
+  };
+  currency: Currency;
+  hours: BusinessHours;
+  marketplace_listing: {
+    is_listed: boolean;
+    public_image_url: string;
+  };
+  no_show_prevention: {
+    enabled: boolean;
+    high_risk_deposit_amount: number;
+  };
+  payment_settings: {
+    deposit_type: 'none' | 'fixed' | 'percentage';
+    deposit_value: number;
+  };
+  notification_settings: {
+    new_booking_alerts: boolean;
+    cancellation_alerts: boolean;
+  };
 }
 
-export interface PublicCustomerUser {
-    id:string;
-    full_name: string;
-    email: string;
-    favoriteBusinessIds: string[];
-}
-export interface UpdateProfileData {
-    full_name: string;
-    email: string;
-}
-export interface ChangePasswordData {
-    current_password: string;
-    new_password: string;
-}
-
-
-// --- API Keys ---
 export interface ApiKey {
   id: string;
   name: string;
@@ -46,61 +64,10 @@ export interface ApiKey {
 }
 
 export interface NewApiKeyResult {
-    id: string;
-    name: string;
-    api_key: string;
+  api_key: string;
+  details: ApiKey;
 }
 
-// --- Business & Settings ---
-export interface DaySchedule {
-  is_working: boolean;
-  start_time: string;
-  end_time: string;
-}
-
-export type BusinessHours = Record<DayOfWeek, DaySchedule>;
-
-export interface BusinessSettings {
-  profile: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  hours: BusinessHours;
-  currency: Currency;
-  marketplace_listing: {
-    is_listed: boolean;
-    public_image_url: string;
-  };
-  payment_settings: {
-    stripe_connected: boolean;
-    deposit_type: 'none' | 'fixed' | 'percentage';
-    deposit_value: number;
-  };
-  notification_settings: {
-    new_booking_alerts: boolean;
-    cancellation_alerts: boolean;
-  };
-  no_show_prevention: {
-    enabled: boolean;
-    high_risk_deposit_amount: number;
-  };
-}
-
-export interface BusinessForAdmin {
-    id: string;
-    name: string;
-    owner_email: string;
-    phone: string;
-    address: string;
-    verification_status: BusinessVerificationStatus;
-    created_at: string;
-}
-export type BusinessVerificationStatus = 'approved' | 'pending' | 'suspended';
-
-
-// --- Customers ---
 export interface Customer {
   id: string;
   full_name: string;
@@ -109,152 +76,129 @@ export interface Customer {
   notes: string;
 }
 
-export type NewCustomerData = Omit<Customer, 'id'>;
-
-// --- Staff ---
-export type StaffSchedule = Record<DayOfWeek, DaySchedule>;
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  duration_minutes: number;
+  price: number;
+  currency: Currency;
+  staffIds: string[];
+  required_skill?: string;
+  average_rating: number;
+  review_count: number;
+}
 
 export interface Staff {
   id: string;
   full_name: string;
   email: string;
   phone: string;
-  role: 'Owner' | 'Manager' | 'Assistant' | 'Stylist';
+  role: StaffRole;
   schedule: StaffSchedule;
-  skills: string[];
+  skills?: string[];
   average_rating: number;
   review_count: number;
 }
-export type NewStaffData = Omit<Staff, 'id' | 'schedule' | 'average_rating' | 'review_count'>;
-
-// --- Services ---
-export interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: Currency;
-  duration_minutes: number;
-  staffIds: string[];
-  required_skill?: string;
-  average_rating: number;
-  review_count: number;
-}
-export type NewServiceData = Omit<Service, 'id' | 'average_rating' | 'review_count' | 'currency'>;
-
-// --- Products & Inventory ---
-export interface ProductVariant {
-    id: string;
-    name: string;
-    price: number;
-    stock_quantity: number;
-}
-export type NewProductVariantData = Omit<ProductVariant, 'id'>;
-
-export interface Product {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    stock_quantity: number;
-    imageUrl?: string;
-    variants?: ProductVariant[];
-}
-export interface NewProductData {
-    name: string;
-    description: string;
-    price: number;
-    stock_quantity: number;
-    imageBase64?: string | null;
-    variants?: NewProductVariantData[];
-}
-export interface BulkImportResult {
-    successCount: number;
-    errorCount: number;
-    createdProducts: Product[];
-}
-
-// --- Bookings & Scheduling ---
-export type BookingStatus = 'confirmed' | 'completed' | 'cancelled' | 'pending';
-export type PaymentStatus = 'unpaid' | 'deposit_paid' | 'paid_in_full';
 
 export interface Booking {
   id: string;
-  start_at: string;
-  end_at: string;
+  start_at: string; // ISO string
+  end_at: string; // ISO string
   status: BookingStatus;
-  customer: { id: string; full_name: string };
-  service: { id: string; name: string; duration_minutes: number };
-  staff: { id: string; full_name: string };
+  customer: { id: string, full_name: string };
+  service: { id: string, name: string, duration_minutes: number };
+  staff: { id: string, full_name: string };
   business?: { id: string, name: string };
-  payment_status: PaymentStatus;
+  recurrence_rule?: 'weekly' | 'monthly' | null;
+  payment_status?: 'unpaid' | 'deposit_paid' | 'paid_in_full';
   payment_intent_id?: string | null;
   transaction_id?: string | null;
-  noShowRiskScore?: number;
+  noShowRiskScore?: number | null;
   review_submitted?: boolean;
-  recurrence_rule?: 'weekly' | 'monthly' | null;
 }
+
 export interface NewBookingData {
-    customerId: string;
-    serviceId: string;
-    staffId: string;
-    startTime: string;
-    recurrenceRule?: 'weekly' | 'monthly' | null;
-    recurrenceEndDate?: string | null;
+  customerId: string;
+  serviceId: string;
+  staffId: string;
+  startTime: string; // ISO string
+  recurrenceRule?: 'weekly' | 'monthly' | null;
+  recurrenceEndDate?: string | null;
 }
-export interface NewPublicBookingData {
-    businessId: string;
-    serviceId: string;
-    staffId: string;
-    startTime: string;
-    customer: {
-        full_name: string;
-        email: string;
-        phone: string;
-    };
-    paymentIntentId?: string;
+
+export interface NewCustomerData {
+  full_name: string;
+  email: string;
+  phone: string;
+  notes: string;
+}
+
+export interface NewServiceData {
+  name: string;
+  description: string;
+  duration_minutes: number;
+  price: number;
+  staffIds: string[];
+  required_skill: string | undefined;
+}
+
+export interface NewStaffData {
+  full_name: string;
+  email: string;
+  phone: string;
+  role: StaffRole;
+  skills: string[];
+}
+
+export interface MarketingCampaign {
+    id: string;
+    name: string;
+    description: string;
+    status: 'Draft' | 'Active' | 'Completed' | 'Archived';
+    channel: MarketingChannel;
+    audience: { id: string, name: string };
+    customers_reached: number;
+    bookings_generated: number;
+}
+
+export interface NewCampaignData {
+    name: string;
+    description: string;
+    status: 'Draft' | 'Active' | 'Completed' | 'Archived';
+    channel: MarketingChannel;
+    audienceId: string;
+}
+
+export interface CustomerAudience {
+    id: string;
+    name: string;
+    description: string;
+    type: AudienceType;
+    customer_count: number;
+}
+
+export interface NewAudienceData {
+    name: string;
+    description: string;
+    type: AudienceType;
 }
 
 export interface TimeOff {
     id: string;
-    staff_id: string; // 'all' for company-wide
+    staff_id: string; // 'all' for all staff
     start_at: string; // ISO string
     end_at: string; // ISO string
     reason: string;
 }
-export type NewTimeOffData = Omit<TimeOff, 'id'>;
 
-// --- Marketing ---
-export interface MarketingCampaign {
-  id: string;
-  name: string;
-  description: string;
-  status: 'Draft' | 'Active' | 'Completed' | 'Archived';
-  channel: 'Email' | 'SMS' | 'Social';
-  audience: { id: string; name: string };
-  customers_reached: number;
-  bookings_generated: number;
-}
-export interface NewCampaignData {
-    name: string;
-    description: string;
-    status: MarketingCampaign['status'];
-    channel: MarketingCampaign['channel'];
-    audienceId: string;
+export interface NewTimeOffData {
+    staff_id: string;
+    start_at: string;
+    end_at: string;
+    reason: string;
 }
 
-export type AudienceType = 'all' | 'frequent' | 'lapsed' | 'new';
-export interface CustomerAudience {
-  id: string;
-  name: string;
-  description: string;
-  type: AudienceType;
-  customer_count: number;
-}
-export type NewAudienceData = Omit<CustomerAudience, 'id' | 'customer_count'>;
-
-// --- Reviews ---
-export type ReviewStatus = 'Pending' | 'Published' | 'Hidden';
 export interface Review {
     id: string;
     booking_id: string;
@@ -270,7 +214,48 @@ export interface Review {
     created_at: string;
 }
 
-// --- Transactions ---
+export interface ProductVariant {
+    id: string;
+    name: string;
+    price: number;
+    stock_quantity: number;
+}
+
+export interface NewProductVariantData {
+    name: string;
+    price: number;
+    stock_quantity: number;
+}
+export interface Product {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    stock_quantity: number;
+    imageUrl?: string;
+    variants?: ProductVariant[];
+}
+
+export interface NewProductData {
+    name: string;
+    description: string;
+    price?: number;
+    stock_quantity?: number;
+    imageBase64?: string | null; // For creating/updating
+    variants?: NewProductVariantData[];
+}
+
+export interface BulkImportResult {
+    successCount: number;
+    errorCount: number;
+    createdProducts: Product[];
+}
+
+export interface Discount {
+    type: 'percentage' | 'fixed';
+    value: number;
+}
+
 export interface TransactionItem {
     id: string;
     name: string;
@@ -280,10 +265,7 @@ export interface TransactionItem {
     staffId?: string;
     staffName?: string;
 }
-export interface Discount {
-    type: 'percentage' | 'fixed';
-    value: number;
-}
+
 export interface Transaction {
     id: string;
     booking_id: string | null;
@@ -296,6 +278,7 @@ export interface Transaction {
     payment_method: 'Cash' | 'Card';
     created_at: string;
 }
+
 export interface NewTransactionData {
     booking_id: string | null;
     customer_id: string;
@@ -304,7 +287,6 @@ export interface NewTransactionData {
     payment_method: 'Cash' | 'Card';
 }
 
-// --- AI ---
 export interface AIGrowthInsight {
     id: string;
     type: 'pricing' | 'bundling';
@@ -312,19 +294,55 @@ export interface AIGrowthInsight {
     description: string;
 }
 
-// --- Public Marketplace ---
-export interface PublicService {
+export interface User {
     id: string;
-    name: string;
-    description: string;
-    price: number;
-    duration_minutes: number;
+    businessName: string;
+    email: string;
+    passwordHash: string;
+    role: StaffRole;
+    staffId: string;
 }
-export interface PublicStaff {
+
+export interface WaitlistEntry {
+    id: string;
+    businessId: string;
+    serviceId: string;
+    customerName: string;
+    customerEmail: string;
+    date: string; // YYYY-MM-DD
+    preferredTimeRange: 'any' | 'morning' | 'afternoon' | 'evening';
+    createdAt: string;
+}
+
+export interface NewWaitlistEntryData extends Omit<WaitlistEntry, 'id' | 'createdAt'> {}
+
+// --- Marketplace Types ---
+
+export interface PublicCustomerUser {
     id: string;
     full_name: string;
-    role: string;
+    email: string;
+    favoriteBusinessIds: string[];
 }
+
+export interface UpdateProfileData {
+    full_name: string;
+    email: string;
+}
+
+export interface ChangePasswordData {
+    current_password: string;
+    new_password: string;
+}
+
+export interface PublicService extends Omit<Service, 'staffIds' | 'required_skill' | 'review_count' | 'average_rating'> {}
+
+export interface PublicStaffMember {
+    id: string;
+    full_name: string;
+    role: StaffRole;
+}
+
 export interface PublicReview {
     id: string;
     customer_name: string;
@@ -342,8 +360,23 @@ export interface PublicBusinessProfile {
     average_rating: number;
     review_count: number;
     services: PublicService[];
-    staff: PublicStaff[];
+    staff: PublicStaffMember[];
     reviews: PublicReview[];
+    latitude?: number;
+    longitude?: number;
+}
+
+export interface NewPublicBookingData {
+    businessId: string;
+    serviceId: string;
+    staffId: string;
+    startTime: string; // ISO String
+    customer: {
+        full_name: string;
+        email: string;
+        phone: string;
+    };
+    paymentIntentId?: string | null;
 }
 
 export interface PaymentIntentDetails {
@@ -351,28 +384,34 @@ export interface PaymentIntentDetails {
     businessId: string;
     staffId: string;
     startTime: string;
-    customer?: { // For guest checkout risk assessment
+    customer?: {
         full_name: string;
         email: string;
     };
 }
 
-export interface WaitlistEntry {
-    id: string;
-    businessId: string;
-    serviceId: string;
-    date: string; // YYYY-MM-DD
-    preferredTimeRange: 'any' | 'morning' | 'afternoon' | 'evening';
-    customerName: string;
-    customerEmail: string;
-    createdAt: string;
-}
-export type NewWaitlistEntryData = Omit<WaitlistEntry, 'id' | 'createdAt'>;
 
-// Platform Admin
+// --- Admin Types ---
+export interface AdminUser {
+    id: string;
+    full_name: string;
+    email: string;
+    role: 'superadmin';
+    passwordHash?: string;
+}
+
 export interface PlatformStats {
     total_revenue: number;
     total_businesses: number;
     total_customers: number;
     total_bookings: number;
+}
+
+export interface BusinessForAdmin {
+    id: string;
+    name: string;
+    owner_email: string;
+    verification_status: BusinessVerificationStatus;
+    latitude?: number;
+    longitude?: number;
 }

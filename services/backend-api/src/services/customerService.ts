@@ -1,9 +1,11 @@
+
 import { mockBookings, mockCustomerUsers, mockReviews } from '../data/mockData';
 import { Booking } from '../types/booking';
 import { ChangePasswordData, PublicCustomerUser, UpdateProfileData } from '../types/customer';
 import * as businessService from './businessService';
 
 const mockHash = (password: string) => `hashed_${password}`;
+const mockCompare = (password: string, hash: string) => mockHash(password) === hash;
 
 export const getBookingsByCustomerId = async (customerId: string): Promise<Booking[]> => {
     return new Promise(resolve => {

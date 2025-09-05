@@ -1,9 +1,7 @@
 
-
 import { mockBookings, mockReviews, mockServices, mockStaff } from '../data/mockData';
 import { Booking, BookingStatus, Review, ReviewStatus } from '../../../../types';
 import { NewReviewData } from '../types/booking';
-import { findAndNotifyWaitlistMatches } from './aiService';
 
 // Helper to update average ratings for services and staff
 const updateAggregateRatings = (serviceId: string, staffId: string) => {
@@ -37,9 +35,9 @@ export const createReview = async (data: NewReviewData, customerId: string): Pro
             return reject(new Error('You can only review completed appointments.'));
         }
         if (mockReviews.some(r => r.booking_id === data.booking_id)) {
-            return reject(new Error('A review for this booking has already been submitted.'));
+            return reject(new Error('A review has already been submitted for this booking.'));
         }
-
+        
         const newReview: Review = {
             id: `rev_${crypto.randomUUID()}`,
             booking_id: data.booking_id,
@@ -51,49 +49,16 @@ export const createReview = async (data: NewReviewData, customerId: string): Pro
             staff_name: booking.staff.full_name,
             rating: data.rating,
             comment: data.comment,
-            status: 'Pending',
+            status: 'Pending', // All reviews start as pending
             created_at: new Date().toISOString(),
         };
 
         mockReviews.unshift(newReview);
+        
+        // This won't affect aggregates until published, but we could call it here
+        // if we wanted pending reviews to count towards something.
+        // updateAggregateRatings(newReview.service_id, newReview.staff_id);
+
         resolve(newReview);
     });
-};
-
-export const getReviewsByBusiness = async (): Promise<Review[]> => {
-    // In a real app, this would be filtered by businessId
-    return Promise.resolve([...mockReviews]);
-};
-
-export const updateReviewStatus = async (reviewId: string, status: ReviewStatus): Promise<Review> => {
-    return new Promise((resolve, reject) => {
-        const index = mockReviews.findIndex(r => r.id === reviewId);
-        if (index === -1) {
-            return reject(new Error('Review not found'));
-        }
-        mockReviews[index].status = status;
-        updateAggregateRatings(mockReviews[index].service_id, mockReviews[index].staff_id);
-        resolve(mockReviews[index]);
-    });
-};
-
-export const handleBookingCompletion = async (booking: Booking, status: BookingStatus): Promise<Booking> => {
-    const index = mockBookings.findIndex(b => b.id === booking.id);
-    if (index === -1) {
-        throw new Error("Booking not found");
-    }
-    
-    const originalStatus = mockBookings[index].status;
-    mockBookings[index].status = status;
-
-    if (status === 'completed' && originalStatus !== 'completed') {
-       // Future logic for review requests could go here, but for now, it's user-initiated.
-    }
-
-    if (status === 'cancelled' && originalStatus !== 'cancelled') {
-        // Trigger waitlist matching (non-blocking)
-        findAndNotifyWaitlistMatches(mockBookings[index]);
-    }
-    
-    return mockBookings[index];
 };

@@ -1,8 +1,6 @@
 
-
 import { mockBookings, mockCustomers, mockServices, mockStaff } from '../data/mockData';
-import { NewPublicBookingData } from '../types/booking';
-import { Booking, BookingStatus } from '../../../../types'; 
+import { NewPublicBookingData, Booking, BookingStatus } from '../types/booking';
 import * as dateFns from 'date-fns';
 import { getNoShowRiskScore, findAndNotifyWaitlistMatches } from './aiService';
 

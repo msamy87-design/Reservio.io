@@ -25,7 +25,16 @@ export const getPlatformStats = async (): Promise<PlatformStats> => {
 export const getAllBusinesses = async (): Promise<BusinessForAdmin[]> => {
     return new Promise(resolve => {
         setTimeout(() => {
-            resolve([...mockBusinesses]);
+            // FIX: Map internal business type to BusinessForAdmin
+            const businessesForAdmin = mockBusinesses.map(b => ({
+                id: b.id,
+                name: b.name,
+                owner_email: b.owner_email,
+                verification_status: b.verification_status,
+                latitude: b.latitude,
+                longitude: b.longitude,
+            }));
+            resolve(businessesForAdmin);
         }, 500);
     });
 };
@@ -38,7 +47,10 @@ export const updateBusinessStatus = async (id: string, status: BusinessVerificat
                 return reject(new Error('Business not found'));
             }
             mockBusinesses[index].verification_status = status;
-            resolve(mockBusinesses[index]);
+            
+            // FIX: Return BusinessForAdmin type
+            const { name, owner_email, verification_status, latitude, longitude } = mockBusinesses[index];
+            resolve({ id, name, owner_email, verification_status, latitude, longitude });
         }, 300);
     });
 };

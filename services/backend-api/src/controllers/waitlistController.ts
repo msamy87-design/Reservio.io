@@ -1,7 +1,7 @@
 
 import { Request, Response } from 'express';
 import * as waitlistService from '../services/waitlistService';
-import { NewWaitlistEntryData } from '../types/booking';
+import { NewWaitlistEntryData } from '../../../../types';
 
 export const create = async (req: Request, res: Response): Promise<void> => {
     try {

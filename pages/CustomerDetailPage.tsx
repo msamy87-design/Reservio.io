@@ -51,12 +51,6 @@ const CustomerDetailPage: React.FC = () => {
         setIsEditModalOpen(false);
     };
 
-    const totalSpent = useMemo(() => {
-        // In a real app, price would be stored on the booking record.
-        // Here we can't calculate it without services data. For simplicity, we'll omit it.
-        return "N/A";
-    }, [customerBookings]);
-
     const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
@@ -89,7 +83,7 @@ const CustomerDetailPage: React.FC = () => {
                                 <p className="text-xs text-gray-500 dark:text-gray-400">Total Bookings</p>
                             </div>
                             <div>
-                                <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{formatDate(customerBookings[customerBookings.length - 1]?.start_at || '')}</p>
+                                <p className="text-xl font-bold text-gray-800 dark:text-gray-100">{customerBookings.length > 0 ? formatDate(customerBookings[customerBookings.length - 1].start_at) : 'N/A'}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">First Booking</p>
                             </div>
                         </div>
@@ -144,7 +138,7 @@ const CustomerDetailPage: React.FC = () => {
                             </thead>
                             <tbody>
                                 {customerBookings.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-8">No bookings found.</td></tr>
+                                    <tr><td colSpan={5} className="text-center py-8">No bookings found for this customer.</td></tr>
                                 ) : (
                                     customerBookings.map(booking => (
                                         <tr key={booking.id} className="border-b dark:border-gray-700">
@@ -161,7 +155,7 @@ const CustomerDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            
+
             <CustomerFormModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}

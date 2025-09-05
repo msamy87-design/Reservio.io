@@ -1,5 +1,4 @@
 
-
 import { mockWaitlist } from '../data/mockData';
 import { WaitlistEntry, NewWaitlistEntryData } from '../../../../types';
 

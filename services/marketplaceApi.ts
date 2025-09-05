@@ -1,35 +1,36 @@
-import { PublicBusinessProfile, NewPublicBookingData, Booking, PaymentIntentDetails, NewWaitlistEntryData } from '../types';
 import { API_BASE_URL } from '../utils/env';
-
-const parseJSONSafe = async (response: Response) => {
-    if (response.status === 204) return null;
-    const text = await response.text();
-    const trimmed = (text || '').trim();
-    if (!trimmed) return null;
-    // Strip common XSSI prefixes like )]}',\n
-    const stripped = trimmed.replace(/^\)\]\}',?\s*/, '');
-    try {
-        return JSON.parse(stripped);
-    } catch (e: any) {
-        throw new Error(`Invalid JSON from ${response.url ?? 'request'} (status ${response.status}): ${e.message}. Body starts with: ${trimmed.slice(0, 80)}`);
-    }
-};
+import { PublicBusinessProfile, NewPublicBookingData, Booking, PaymentIntentDetails, NewWaitlistEntryData } from '../types';
 
 const handleResponse = async (response: Response) => {
-    const data = await parseJSONSafe(response);
+    if (response.status === 204) return null;
+    const data = await response.json();
     if (!response.ok) {
-        const message = (data && (data.message || (data.error && (data.error.message || data.error)))) || `API request failed with status ${response.status}`;
-        throw new Error(message);
+        throw new Error(data.message || 'API request failed');
     }
-    return data as any;
+    return data;
 };
 
-export const searchBusinesses = async (location: string, service: string): Promise<PublicBusinessProfile[]> => {
-    const queryParams = new URLSearchParams();
-    if (location) queryParams.append('location', location);
-    if (service) queryParams.append('service', service);
+export interface SearchFilters {
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number;
+    date?: string;
+    lat?: number | null;
+    lon?: number | null;
+}
 
-    const response = await fetch(`${API_BASE_URL}/businesses/search?${queryParams.toString()}`);
+export const searchBusinesses = async (service: string, location: string, filters: SearchFilters): Promise<PublicBusinessProfile[]> => {
+    const params = new URLSearchParams();
+    if (service) params.append('service', service);
+    if (location) params.append('location', location);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+    if (filters.minRating) params.append('minRating', filters.minRating.toString());
+    if (filters.date) params.append('date', filters.date);
+    if (filters.lat) params.append('lat', filters.lat.toString());
+    if (filters.lon) params.append('lon', filters.lon.toString());
+
+    const response = await fetch(`${API_BASE_URL}/businesses/search?${params.toString()}`);
     return handleResponse(response);
 };
 
@@ -48,11 +49,21 @@ export const getBusinessesByIds = async (ids: string[]): Promise<PublicBusinessP
     return handleResponse(response);
 };
 
+
 export const getAvailability = async (businessId: string, serviceId: string, staffId: string, date: string): Promise<Record<string, string[]>> => {
-    const queryParams = new URLSearchParams({ serviceId, staffId, date });
-    const response = await fetch(`${API_BASE_URL}/businesses/${businessId}/availability?${queryParams.toString()}`);
+    const params = new URLSearchParams({ serviceId, staffId, date });
+    const response = await fetch(`${API_BASE_URL}/businesses/${businessId}/availability?${params.toString()}`);
     return handleResponse(response);
-}
+};
+
+export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string | null; depositAmount: number; depositReason: string; }> => {
+    const response = await fetch(`${API_BASE_URL}/payments/create-payment-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(details),
+    });
+    return handleResponse(response);
+};
 
 export const createPublicBooking = async (data: NewPublicBookingData): Promise<Booking> => {
     const response = await fetch(`${API_BASE_URL}/bookings`, {
@@ -63,16 +74,7 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
     return handleResponse(response);
 };
 
-export const createPaymentIntent = async (details: PaymentIntentDetails): Promise<{ clientSecret: string; depositAmount: number, depositReason: string }> => {
-    const response = await fetch(`${API_BASE_URL}/payments/create-payment-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(details),
-    });
-    return handleResponse(response);
-};
-
-export const joinWaitlist = async (data: NewWaitlistEntryData): Promise<{success: boolean}> => {
+export const joinWaitlist = async (data: NewWaitlistEntryData): Promise<{ success: boolean }> => {
     const response = await fetch(`${API_BASE_URL}/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

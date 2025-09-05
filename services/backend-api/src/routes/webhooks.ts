@@ -1,6 +1,6 @@
 
-
-import express, { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
+import * as express from 'express';
 import Stripe from 'stripe';
 import { bookingsService } from '../services/bookingsService';
 

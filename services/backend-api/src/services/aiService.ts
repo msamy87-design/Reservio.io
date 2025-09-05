@@ -53,6 +53,7 @@ export const getNoShowRiskScore = async (payload: NoShowRiskPayload): Promise<nu
                     properties: {
                         riskScore: { type: Type.INTEGER }
                     },
+                    required: ["riskScore"],
                 },
             },
         });

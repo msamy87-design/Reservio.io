@@ -1,24 +1,26 @@
 
 import { Request, Response } from 'express';
 import * as businessService from '../services/businessService';
-import * as dateFns from 'date-fns';
 
 export const search = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { location, service } = req.query;
+        const { service, location, minPrice, maxPrice, minRating, date, lat, lon } = req.query;
+        
+        const filters = {
+            minPrice: minPrice ? Number(minPrice) : undefined,
+            maxPrice: maxPrice ? Number(maxPrice) : undefined,
+            minRating: minRating ? Number(minRating) : undefined,
+            date: date as string | undefined,
+        };
 
-        if (typeof location !== 'string' && typeof service !== 'string') {
-            res.status(400).json({ message: 'A location or service query parameter is required.' });
-            return;
-        }
-
-        const businesses = await businessService.searchBusinesses({ 
-            location: location as string | undefined, 
-            service: service as string | undefined 
-        });
-
-        res.status(200).json(businesses);
-
+        const results = await businessService.searchBusinesses(
+            service as string, 
+            location as string, 
+            filters,
+            lat as string | undefined,
+            lon as string | undefined
+        );
+        res.status(200).json(results);
     } catch (error) {
         console.error('Error searching businesses:', error);
         res.status(500).json({ message: 'An error occurred while searching for businesses.' });
@@ -29,16 +31,13 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const business = await businessService.getBusinessById(id);
-
-        if (!business) {
+        if (business) {
+            res.status(200).json(business);
+        } else {
             res.status(404).json({ message: 'Business not found.' });
-            return;
         }
-
-        res.status(200).json(business);
-
     } catch (error) {
-        console.error(`Error fetching business by ID ${req.params.id}:`, error);
+        console.error('Error fetching business by ID:', error);
         res.status(500).json({ message: 'An error occurred while fetching the business profile.' });
     }
 };
@@ -47,43 +46,29 @@ export const getMultipleByIds = async (req: Request, res: Response): Promise<voi
     try {
         const { ids } = req.body;
         if (!Array.isArray(ids)) {
-            res.status(400).json({ message: 'An array of business IDs is required.' });
+            res.status(400).json({ message: 'Request body must contain an array of IDs.' });
             return;
         }
-        
         const businesses = await businessService.getBusinessesByIds(ids);
         res.status(200).json(businesses);
-
     } catch (error) {
-        console.error('Error fetching businesses by IDs:', error);
+        console.error('Error fetching multiple businesses by IDs:', error);
         res.status(500).json({ message: 'An error occurred while fetching business profiles.' });
     }
-};
+}
 
 export const getAvailability = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id: businessId } = req.params;
+        const { id } = req.params;
         const { serviceId, staffId, date } = req.query;
-
-        if (typeof serviceId !== 'string' || typeof staffId !== 'string' || typeof date !== 'string' || !dateFns.isValid(new Date(date as string))) {
-            res.status(400).json({ message: 'Valid serviceId, staffId, and date (YYYY-MM-DD) are required.' });
+        if (!serviceId || !date) {
+            res.status(400).json({ message: 'Service ID and date are required.' });
             return;
         }
-
-        if (staffId === 'any') {
-             const availableSlots = await businessService.getCombinedAvailability(serviceId as string, new Date(date as string));
-             res.status(200).json(availableSlots);
-        } else {
-             const availableSlots = await businessService.getAvailableSlots(staffId as string, serviceId as string, new Date(date as string));
-             res.status(200).json(availableSlots);
-        }
-
+        const availability = await businessService.getAvailability(id, serviceId as string, staffId as string, date as string);
+        res.status(200).json(availability);
     } catch (error) {
-        console.error('Error getting availability:', error);
-        if (error instanceof Error) {
-            res.status(404).json({ message: error.message });
-            return;
-        }
+        console.error('Error fetching availability:', error);
         res.status(500).json({ message: 'An error occurred while fetching availability.' });
     }
 };

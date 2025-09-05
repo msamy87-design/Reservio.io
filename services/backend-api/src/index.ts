@@ -1,5 +1,5 @@
 
-import express, { Request, Response } from 'express';
+import * as express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -40,7 +40,7 @@ app.use(cors(corsOptions));
 
 // --- Routes ---
 // FIX: Use Request and Response types from express to fix 'send' property not found error.
-app.get('/api', (req: Request, res: Response) => {
+app.get('/api', (req: express.Request, res: express.Response) => {
   res.send('Reservio API is running!');
 });
 

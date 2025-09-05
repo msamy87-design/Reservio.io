@@ -1,3 +1,4 @@
+
 import Stripe from 'stripe';
 import { mockServices, mockBusinessSettings } from '../data/mockData';
 import { PaymentIntentDetails } from '../../../../types';

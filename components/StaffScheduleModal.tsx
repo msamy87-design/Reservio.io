@@ -1,8 +1,5 @@
-
-
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
-// FIX: Import DayOfWeek to fix typing issues with mapping over days.
 import { Staff, StaffSchedule, DaySchedule, DayOfWeek } from '../types';
 
 interface StaffScheduleModalProps {
@@ -45,7 +42,6 @@ const StaffScheduleModal: React.FC<StaffScheduleModalProps> = ({
     setIsSubmitting(false);
   };
   
-  // FIX: Use the specific DayOfWeek type to ensure type safety in loops.
   const daysOfWeek: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   return (
