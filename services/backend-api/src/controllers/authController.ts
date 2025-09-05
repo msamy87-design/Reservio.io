@@ -17,17 +17,32 @@ export const customerLogin = async (req: Request, res: Response): Promise<void> 
         const { email, password } = req.body as CustomerLoginRequest;
         const result = await authService.loginCustomer(email, password);
         
-        // Set refresh token as httpOnly cookie for security
-        res.cookie('refreshToken', result.refreshToken, {
+        // Set both tokens as httpOnly cookies for maximum security
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        
+        res.cookie('userType', 'customer', {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
         res.status(200).json({
             user: result.user,
-            accessToken: result.accessToken
+            message: 'Login successful'
         });
     } catch (error) {
         logger.error('Customer login error:', error);
@@ -41,17 +56,32 @@ export const customerSignup = async (req: Request, res: Response): Promise<void>
         const { fullName, email, password, phone } = req.body as CustomerSignupRequest;
         const result = await authService.signupCustomer(fullName, email, password, phone);
         
-        // Set refresh token as httpOnly cookie
-        res.cookie('refreshToken', result.refreshToken, {
+        // Set both tokens as httpOnly cookies
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        
+        res.cookie('userType', 'customer', {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
         res.status(201).json({
             user: result.user,
-            accessToken: result.accessToken
+            message: 'Account created successfully'
         });
     } catch (error) {
         logger.error('Customer signup error:', error);
@@ -67,16 +97,31 @@ export const businessLogin = async (req: Request, res: Response): Promise<void> 
         const { email, password } = req.body as BusinessLoginRequest;
         const result = await authService.loginBusiness(email, password);
         
-        res.cookie('refreshToken', result.refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        
+        res.cookie('userType', 'business', {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
         res.status(200).json({
             user: result.user,
-            accessToken: result.accessToken
+            message: 'Login successful'
         });
     } catch (error) {
         logger.error('Business login error:', error);
@@ -90,16 +135,31 @@ export const businessSignup = async (req: Request, res: Response): Promise<void>
         const { businessName, email, password } = req.body as BusinessSignupRequest;
         const result = await authService.signupBusiness(businessName, email, password);
         
-        res.cookie('refreshToken', result.refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        
+        res.cookie('userType', 'business', {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
         res.status(201).json({
             user: result.user,
-            accessToken: result.accessToken
+            message: 'Business account created successfully'
         });
     } catch (error) {
         logger.error('Business signup error:', error);
@@ -114,16 +174,31 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
         const { email, password } = req.body as AdminLoginRequest;
         const result = await authService.loginAdmin(email, password);
         
-        res.cookie('refreshToken', result.refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        
+        res.cookie('userType', 'admin', {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
         res.status(200).json({
             user: result.user,
-            accessToken: result.accessToken
+            message: 'Admin login successful'
         });
     } catch (error) {
         logger.error('Admin login error:', error);
@@ -135,8 +210,8 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
 // Token refresh
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
-        const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-        const userType = req.body.userType || 'customer'; // default to customer
+        const refreshToken = req.cookies.refreshToken;
+        const userType = req.cookies.userType || req.body.userType || 'customer';
         
         if (!refreshToken) {
             res.status(401).json({ message: 'Refresh token required' });
@@ -145,18 +220,30 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         
         const result = await authService.refreshAccessToken(refreshToken, userType);
         
-        // Update refresh token cookie
-        res.cookie('refreshToken', result.refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict' as const,
+            path: '/'
+        };
+        
+        // Update both tokens
+        res.cookie('accessToken', result.accessToken, {
+            ...cookieOptions,
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+        
+        res.cookie('refreshToken', result.refreshToken, {
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         
-        res.status(200).json({ accessToken: result.accessToken });
+        res.status(200).json({ message: 'Token refreshed successfully' });
     } catch (error) {
         logger.error('Token refresh error:', error);
         res.clearCookie('refreshToken');
+        res.clearCookie('accessToken');
+        res.clearCookie('userType');
         res.status(401).json({ message: 'Invalid refresh token' });
     }
 };
@@ -164,18 +251,25 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 // Logout
 export const logout = async (req: Request, res: Response): Promise<void> => {
     try {
-        const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-        const userType = req.body.userType || 'customer';
+        const refreshToken = req.cookies.refreshToken;
+        const userType = req.cookies.userType || req.body.userType || 'customer';
         
         if (refreshToken) {
             await authService.logout(refreshToken, userType);
         }
         
+        // Clear all auth cookies
         res.clearCookie('refreshToken');
+        res.clearCookie('accessToken');
+        res.clearCookie('userType');
+        
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
         logger.error('Logout error:', error);
+        // Always clear cookies even if logout fails
         res.clearCookie('refreshToken');
+        res.clearCookie('accessToken');
+        res.clearCookie('userType');
         res.status(200).json({ message: 'Logged out' });
     }
 };
@@ -184,14 +278,21 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 export const logoutFromAllDevices = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.body.userId;
-        const userType = req.body.userType || 'customer';
+        const userType = req.cookies.userType || req.body.userType || 'customer';
         
         await authService.logoutFromAllDevices(userId, userType);
         
+        // Clear all auth cookies
         res.clearCookie('refreshToken');
+        res.clearCookie('accessToken');
+        res.clearCookie('userType');
+        
         res.status(200).json({ message: 'Logged out from all devices' });
     } catch (error) {
         logger.error('Logout from all devices error:', error);
+        res.clearCookie('refreshToken');
+        res.clearCookie('accessToken');
+        res.clearCookie('userType');
         res.status(500).json({ message: 'Logout failed' });
     }
 };

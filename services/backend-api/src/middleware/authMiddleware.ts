@@ -32,7 +32,11 @@ export interface AuthenticatedAdminRequest extends Request {
 
 export const protectCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        // Try to get token from cookie first, then fall back to Authorization header
+        let token = req.cookies.accessToken;
+        if (!token) {
+            token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        }
         
         if (!token) {
             res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -62,13 +66,38 @@ export const protectCustomer = async (req: Request, res: Response, next: NextFun
         next();
     } catch (error) {
         logger.error('Customer authentication error:', error);
+        
+        // If token is expired, try to refresh it if refresh token exists
+        if (error.name === 'TokenExpiredError' && req.cookies.refreshToken) {
+            try {
+                const refreshResult = await JWTUtil.verifyToken(req.cookies.refreshToken);
+                if (refreshResult.type === 'refresh') {
+                    res.status(401).json({ 
+                        message: 'Token expired', 
+                        code: 'TOKEN_EXPIRED',
+                        shouldRefresh: true 
+                    });
+                    return;
+                }
+            } catch (refreshError) {
+                // Refresh token is also invalid, clear cookies
+                res.clearCookie('accessToken');
+                res.clearCookie('refreshToken');
+                res.clearCookie('userType');
+            }
+        }
+        
         res.status(401).json({ message: 'Invalid token' });
     }
 };
 
 export const protectBusiness = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        // Try to get token from cookie first, then fall back to Authorization header
+        let token = req.cookies.accessToken;
+        if (!token) {
+            token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        }
         
         if (!token) {
             res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -99,13 +128,38 @@ export const protectBusiness = async (req: Request, res: Response, next: NextFun
         next();
     } catch (error) {
         logger.error('Business authentication error:', error);
+        
+        // If token is expired, try to refresh it if refresh token exists
+        if (error.name === 'TokenExpiredError' && req.cookies.refreshToken) {
+            try {
+                const refreshResult = await JWTUtil.verifyToken(req.cookies.refreshToken);
+                if (refreshResult.type === 'refresh') {
+                    res.status(401).json({ 
+                        message: 'Token expired', 
+                        code: 'TOKEN_EXPIRED',
+                        shouldRefresh: true 
+                    });
+                    return;
+                }
+            } catch (refreshError) {
+                // Refresh token is also invalid, clear cookies
+                res.clearCookie('accessToken');
+                res.clearCookie('refreshToken');
+                res.clearCookie('userType');
+            }
+        }
+        
         res.status(401).json({ message: 'Invalid token' });
     }
 };
 
 export const protectAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        // Try to get token from cookie first, then fall back to Authorization header
+        let token = req.cookies.accessToken;
+        if (!token) {
+            token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        }
         
         if (!token) {
             res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -136,6 +190,27 @@ export const protectAdmin = async (req: Request, res: Response, next: NextFuncti
         next();
     } catch (error) {
         logger.error('Admin authentication error:', error);
+        
+        // If token is expired, try to refresh it if refresh token exists
+        if (error.name === 'TokenExpiredError' && req.cookies.refreshToken) {
+            try {
+                const refreshResult = await JWTUtil.verifyToken(req.cookies.refreshToken);
+                if (refreshResult.type === 'refresh') {
+                    res.status(401).json({ 
+                        message: 'Token expired', 
+                        code: 'TOKEN_EXPIRED',
+                        shouldRefresh: true 
+                    });
+                    return;
+                }
+            } catch (refreshError) {
+                // Refresh token is also invalid, clear cookies
+                res.clearCookie('accessToken');
+                res.clearCookie('refreshToken');
+                res.clearCookie('userType');
+            }
+        }
+        
         res.status(401).json({ message: 'Invalid token' });
     }
 };
@@ -143,7 +218,8 @@ export const protectAdmin = async (req: Request, res: Response, next: NextFuncti
 // Middleware to validate refresh tokens
 export const validateRefreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { refreshToken } = req.body;
+        // Try to get refresh token from cookie first, then body
+        const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
         
         if (!refreshToken) {
             res.status(401).json({ message: 'Refresh token required' });

@@ -182,6 +182,71 @@ export const paramSchemas = {
   })
 };
 
+// Marketplace/Public API validation schemas
+export const publicSchemas = {
+  createBooking: Joi.object({
+    businessId: objectId.required(),
+    serviceId: objectId.required(),
+    staffId: objectId.required(),
+    startTime: Joi.string().isoDate().required(),
+    customer: Joi.object({
+      full_name: Joi.string().trim().min(2).max(100).required(),
+      email: email,
+      phone: phone.required()
+    }).required(),
+    paymentIntentId: Joi.string().optional()
+  }),
+
+  searchBusinesses: Joi.object({
+    service: Joi.string().max(100).optional(),
+    location: Joi.string().max(100).optional(),
+    lat: Joi.string().pattern(/^-?\d+\.?\d*$/).optional(),
+    lon: Joi.string().pattern(/^-?\d+\.?\d*$/).optional(),
+    minPrice: Joi.number().min(0).optional(),
+    maxPrice: Joi.number().min(0).optional(),
+    minRating: Joi.number().min(0).max(5).optional(),
+    date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional()
+  })
+};
+
+// Payment validation schemas
+export const paymentSchemas = {
+  createPaymentIntent: Joi.object({
+    bookingId: objectId.required(),
+    amount: Joi.number().min(0).max(100000).precision(2).required(),
+    currency: Joi.string().valid('USD', 'EUR', 'GBP').default('USD')
+  })
+};
+
+// Review validation schemas
+export const reviewSchemas = {
+  createReview: Joi.object({
+    booking_id: objectId.required(),
+    rating: Joi.number().integer().min(1).max(5).required(),
+    comment: Joi.string().max(1000).optional()
+  })
+};
+
+// Waitlist validation schemas
+export const waitlistSchemas = {
+  addToWaitlist: Joi.object({
+    businessId: objectId.required(),
+    serviceId: objectId.required(),
+    customerName: Joi.string().trim().min(2).max(100).required(),
+    customerEmail: email,
+    date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+    preferredTimeRange: Joi.string().valid('any', 'morning', 'afternoon', 'evening').default('any')
+  })
+};
+
+// Admin validation schemas
+export const adminSchemas = {
+  updateBusinessStatus: Joi.object({
+    status: Joi.string().valid('pending', 'approved', 'suspended').required(),
+    reason: Joi.string().max(500).optional()
+  })
+};
+
 // Query parameter schemas
 export const querySchemas = {
   pagination: Joi.object({
@@ -189,5 +254,25 @@ export const querySchemas = {
     limit: Joi.number().integer().min(1).max(100).default(10),
     sort: Joi.string().max(50).optional(),
     order: Joi.string().valid('asc', 'desc').default('desc')
+  }),
+
+  businessSearch: Joi.object({
+    service: Joi.string().max(100).optional(),
+    location: Joi.string().max(100).optional(),
+    lat: Joi.string().pattern(/^-?\d+\.?\d*$/).optional(),
+    lon: Joi.string().pattern(/^-?\d+\.?\d*$/).optional(),
+    minPrice: Joi.number().min(0).optional(),
+    maxPrice: Joi.number().min(0).optional(),
+    minRating: Joi.number().min(0).max(5).optional(),
+    date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional()
+  }),
+
+  availability: Joi.object({
+    date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+    serviceId: objectId.required(),
+    staffId: Joi.alternatives().try(
+      objectId,
+      Joi.string().valid('any')
+    ).required()
   })
 };

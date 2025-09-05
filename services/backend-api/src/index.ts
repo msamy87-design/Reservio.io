@@ -12,7 +12,7 @@ import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
-import { connectDatabase } from './config/database';
+import { connectDatabase, getDatabaseStatus, isDatabaseConnected } from './config/database';
 import { logger, stream } from './utils/logger';
 import businessesRouter from './routes/businesses';
 import bookingsRouter from './routes/bookings';
@@ -160,61 +160,86 @@ app.set('trust proxy', 1);
 
 // --- Health Check ---
 app.get('/api/health', async (req: express.Request, res: express.Response) => {
-  const performanceSummary = performanceMonitoring.getPerformanceSummary();
-  const cacheStats = await cacheService.getStats();
-  const abTestSummary = await abTestService.getTestSummary();
-  const pushStats = await pushNotificationService.getNotificationStats();
-  const pushConfig = pushNotificationService.isConfigured();
-  const analyticsStats = await analyticsService.getStats();
-  const analyticsConfig = analyticsService.isConfigured();
-  const recommendationStats = await recommendationEngine.getStats();
-  const recommendationConfig = recommendationEngine.isConfigured();
-  const marketplaceStats = await advancedMarketplaceService.getStats();
-  const marketplaceConfig = advancedMarketplaceService.isConfigured();
-  const inventoryStats = await inventoryManagementService.getStats();
-  const inventoryConfig = inventoryManagementService.isConfigured();
-  const biStats = await businessIntelligenceService.getStats();
-  const biConfig = businessIntelligenceService.isConfigured();
-  const collaborationStats = await collaborationService.getStats();
-  const collaborationConfig = collaborationService.isConfigured();
+  const databaseStatus = getDatabaseStatus();
+  const isDbConnected = isDatabaseConnected();
   
-  res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
-    monitoring: performanceSummary,
-    cache: cacheStats,
-    abTesting: abTestSummary,
-    pushNotifications: {
-      stats: pushStats,
-      configuration: pushConfig
-    },
-    analytics: {
-      stats: analyticsStats,
-      configuration: analyticsConfig
-    },
-    recommendations: {
-      stats: recommendationStats,
-      configuration: recommendationConfig
-    },
-    marketplace: {
-      stats: marketplaceStats,
-      configuration: marketplaceConfig
-    },
-    inventory: {
-      stats: inventoryStats,
-      configuration: inventoryConfig
-    },
-    businessIntelligence: {
-      stats: biStats,
-      configuration: biConfig
-    },
-    collaboration: {
-      stats: collaborationStats,
-      configuration: collaborationConfig
-    }
-  });
+  // Determine overall health status
+  const isHealthy = isDbConnected;
+  const httpStatus = isHealthy ? 200 : 503;
+  
+  try {
+    const performanceSummary = performanceMonitoring.getPerformanceSummary();
+    const cacheStats = await cacheService.getStats();
+    const abTestSummary = await abTestService.getTestSummary();
+    const pushStats = await pushNotificationService.getNotificationStats();
+    const pushConfig = pushNotificationService.isConfigured();
+    const analyticsStats = await analyticsService.getStats();
+    const analyticsConfig = analyticsService.isConfigured();
+    const recommendationStats = await recommendationEngine.getStats();
+    const recommendationConfig = recommendationEngine.isConfigured();
+    const marketplaceStats = await advancedMarketplaceService.getStats();
+    const marketplaceConfig = advancedMarketplaceService.isConfigured();
+    const inventoryStats = await inventoryManagementService.getStats();
+    const inventoryConfig = inventoryManagementService.isConfigured();
+    const biStats = await businessIntelligenceService.getStats();
+    const biConfig = businessIntelligenceService.isConfigured();
+    const collaborationStats = await collaborationService.getStats();
+    const collaborationConfig = collaborationService.isConfigured();
+    
+    res.status(httpStatus).json({ 
+      status: isHealthy ? 'ok' : 'degraded', 
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      database: {
+        connected: isDbConnected,
+        ...databaseStatus
+      },
+      monitoring: performanceSummary,
+      cache: cacheStats,
+      abTesting: abTestSummary,
+      pushNotifications: {
+        stats: pushStats,
+        configuration: pushConfig
+      },
+      analytics: {
+        stats: analyticsStats,
+        configuration: analyticsConfig
+      },
+      recommendations: {
+        stats: recommendationStats,
+        configuration: recommendationConfig
+      },
+      marketplace: {
+        stats: marketplaceStats,
+        configuration: marketplaceConfig
+      },
+      inventory: {
+        stats: inventoryStats,
+        configuration: inventoryConfig
+      },
+      businessIntelligence: {
+        stats: biStats,
+        configuration: biConfig
+      },
+      collaboration: {
+        stats: collaborationStats,
+        configuration: collaborationConfig
+      }
+    });
+  } catch (error) {
+    logger.error('Health check error:', error);
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed',
+      database: {
+        connected: isDbConnected,
+        ...databaseStatus
+      }
+    });
+  }
 });
 
 // --- Swagger Documentation ---

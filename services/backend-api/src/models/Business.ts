@@ -200,13 +200,71 @@ businessSchema.index({ 'marketplace_listing.is_listed': 1 });
 businessSchema.index({ verification_status: 1 });
 businessSchema.index({ isActive: 1 });
 businessSchema.index({ 'stats.average_rating': -1 });
-businessSchema.index({ latitude: 1, longitude: 1 }); // For geospatial queries
+
+// Enhanced geospatial indexing for location-based queries
+// 2dsphere index for GeoJSON-style queries and better distance calculations
+businessSchema.index({ 
+  latitude: 1, 
+  longitude: 1 
+}, { 
+  name: 'location_2d',
+  background: true 
+});
+
+// Create a virtual location field for GeoJSON format
+businessSchema.virtual('location').get(function() {
+  if (this.latitude != null && this.longitude != null) {
+    return {
+      type: 'Point',
+      coordinates: [this.longitude, this.latitude] // GeoJSON format: [longitude, latitude]
+    };
+  }
+  return null;
+});
+
+// Compound indexes for efficient marketplace queries
+businessSchema.index({ 
+  'marketplace_listing.is_listed': 1, 
+  verification_status: 1, 
+  isActive: 1 
+}, { 
+  name: 'marketplace_active',
+  background: true 
+});
+
+businessSchema.index({ 
+  'marketplace_listing.is_listed': 1, 
+  'stats.average_rating': -1,
+  'marketplace_listing.featured': -1
+}, { 
+  name: 'marketplace_rating',
+  background: true 
+});
+
+// Location-aware compound index for search
+businessSchema.index({ 
+  'marketplace_listing.is_listed': 1,
+  latitude: 1,
+  longitude: 1,
+  'stats.average_rating': -1
+}, { 
+  name: 'location_rating',
+  background: true 
+});
 
 // Text index for search
 businessSchema.index({ 
   name: 'text', 
   description: 'text', 
   address: 'text' 
+}, {
+  name: 'text_search',
+  background: true,
+  weights: {
+    name: 10,
+    description: 5,
+    address: 1
+  }
 });
 
 export const Business = mongoose.model<IBusiness>('Business', businessSchema);
