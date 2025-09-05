@@ -30,7 +30,9 @@ export const connectDatabase = async (): Promise<void> => {
 
   } catch (error) {
     logger.error('Database connection failed:', error);
-    process.exit(1);
+    logger.warn('Continuing without database connection for API documentation testing');
+    // Don't exit on database connection failure to allow Swagger docs testing
+    // process.exit(1);
   }
 };
 

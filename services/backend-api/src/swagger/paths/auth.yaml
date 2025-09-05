@@ -1,0 +1,354 @@
+# Authentication endpoints
+/auth/customer/login:
+  post:
+    tags:
+      - Authentication
+    summary: Customer login
+    description: Authenticate a customer user and receive access tokens
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginRequest'
+          example:
+            email: "customer@example.com"
+            password: "SecurePass123!"
+    responses:
+      200:
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResponse'
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      400:
+        $ref: '#/components/responses/ValidationError'
+      429:
+        $ref: '#/components/responses/RateLimitError'
+
+/auth/customer/signup:
+  post:
+    tags:
+      - Authentication
+    summary: Customer registration
+    description: Register a new customer account
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SignupRequest'
+          example:
+            fullName: "John Doe"
+            email: "john.doe@example.com"
+            password: "SecurePass123!"
+            phone: "+1 (555) 123-4567"
+    responses:
+      201:
+        description: Registration successful
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResponse'
+      409:
+        description: Email already exists
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              message: "An account with this email already exists"
+              code: "EMAIL_EXISTS"
+      400:
+        $ref: '#/components/responses/ValidationError'
+
+/auth/business/login:
+  post:
+    tags:
+      - Authentication
+    summary: Business user login
+    description: Authenticate a business user (Owner, Manager, Assistant)
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+          example:
+            email: "owner@salon.com"
+            password: "BusinessPass123!"
+    responses:
+      200:
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/BusinessUser'
+                accessToken:
+                  type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+/auth/admin/login:
+  post:
+    tags:
+      - Authentication
+    summary: Admin login
+    description: Authenticate an admin user (superadmin role only)
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginRequest'
+    responses:
+      200:
+        description: Admin login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    fullName:
+                      type: string
+                    email:
+                      type: string
+                    role:
+                      type: string
+                      enum: [superadmin]
+                accessToken:
+                  type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      403:
+        description: Insufficient privileges
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/auth/refresh:
+  post:
+    tags:
+      - Authentication
+    summary: Refresh access token
+    description: Generate a new access token using refresh token
+    security:
+      - refreshToken: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userType:
+                type: string
+                enum: [customer, business, admin]
+                default: customer
+                description: Type of user account
+    responses:
+      200:
+        description: Token refreshed successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accessToken:
+                  type: string
+                  description: New JWT access token
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              description: Updated refresh token cookie
+      401:
+        description: Invalid refresh token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/auth/logout:
+  post:
+    tags:
+      - Authentication
+    summary: Logout user
+    description: Invalidate current session and clear tokens
+    security:
+      - bearerAuth: []
+      - refreshToken: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userType:
+                type: string
+                enum: [customer, business, admin]
+                default: customer
+    responses:
+      200:
+        description: Logout successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Logged out successfully"
+
+/auth/forgot-password:
+  post:
+    tags:
+      - Authentication
+    summary: Request password reset
+    description: Send password reset email to user
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, userType]
+            properties:
+              email:
+                type: string
+                format: email
+                description: User email address
+              userType:
+                type: string
+                enum: [customer, business]
+                description: Type of user account
+          example:
+            email: "user@example.com"
+            userType: "customer"
+    responses:
+      200:
+        description: Password reset email sent
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                message:
+                  type: string
+                  example: "Password reset email sent successfully"
+      404:
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      429:
+        $ref: '#/components/responses/RateLimitError'
+
+/auth/reset-password:
+  post:
+    tags:
+      - Authentication
+    summary: Reset password
+    description: Reset user password using reset token
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [token, userType, password]
+            properties:
+              token:
+                type: string
+                description: Password reset token from email
+              userType:
+                type: string
+                enum: [customer, business]
+              password:
+                type: string
+                minLength: 8
+                pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]'
+                description: New password meeting complexity requirements
+    responses:
+      200:
+        description: Password reset successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Password reset successfully"
+      400:
+        description: Invalid or expired token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/auth/verify-email:
+  post:
+    tags:
+      - Authentication
+    summary: Verify email address
+    description: Verify user email using verification token
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [token, userType]
+            properties:
+              token:
+                type: string
+                description: Email verification token
+              userType:
+                type: string
+                enum: [customer, business]
+    responses:
+      200:
+        description: Email verified successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                message:
+                  type: string
+      400:
+        description: Invalid or expired verification token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'

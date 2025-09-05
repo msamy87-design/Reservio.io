@@ -1,0 +1,471 @@
+# Customer profile and preferences endpoints
+/customer/profile:
+  get:
+    tags:
+      - Customer
+    summary: Get customer profile
+    description: Retrieve authenticated customer's profile information
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Customer profile
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUser'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+  put:
+    tags:
+      - Customer
+    summary: Update customer profile
+    description: Update customer profile information
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              fullName:
+                type: string
+                maxLength: 100
+              phone:
+                type: string
+                pattern: '^\+?[\d\s\-()]+$'
+          example:
+            fullName: "John Smith"
+            phone: "+1-555-123-4567"
+    responses:
+      200:
+        description: Profile updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUser'
+      400:
+        $ref: '#/components/responses/ValidationError'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+/customer/favorites:
+  get:
+    tags:
+      - Customer
+    summary: Get favorite businesses
+    description: Retrieve customer's favorite businesses
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Favorite businesses
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                favorites:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Business'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+  post:
+    tags:
+      - Customer
+    summary: Add business to favorites
+    description: Add a business to customer's favorites list
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [businessId]
+            properties:
+              businessId:
+                type: string
+                description: ID of the business to add to favorites
+          example:
+            businessId: "60d5f484f8d2e8a1b8c9d0e1"
+    responses:
+      200:
+        description: Business added to favorites
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Business added to favorites"
+                favoriteBusinessIds:
+                  type: array
+                  items:
+                    type: string
+      400:
+        $ref: '#/components/responses/ValidationError'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      409:
+        description: Business already in favorites
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/customer/favorites/{businessId}:
+  delete:
+    tags:
+      - Customer
+    summary: Remove business from favorites
+    description: Remove a business from customer's favorites list
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: businessId
+        required: true
+        schema:
+          type: string
+        description: Business ID to remove from favorites
+    responses:
+      200:
+        description: Business removed from favorites
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Business removed from favorites"
+                favoriteBusinessIds:
+                  type: array
+                  items:
+                    type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      404:
+        description: Business not in favorites
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/customer/booking-history:
+  get:
+    tags:
+      - Customer
+    summary: Get booking history
+    description: Retrieve customer's complete booking history with filtering options
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+        description: Filter by booking status
+      - in: query
+        name: businessId
+        schema:
+          type: string
+        description: Filter by specific business
+      - in: query
+        name: startDate
+        schema:
+          type: string
+          format: date
+        description: Filter bookings from this date
+      - in: query
+        name: endDate
+        schema:
+          type: string
+          format: date
+        description: Filter bookings until this date
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      200:
+        description: Booking history
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookings:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Booking'
+                pagination:
+                  type: object
+                  properties:
+                    page:
+                      type: integer
+                    limit:
+                      type: integer
+                    total:
+                      type: integer
+                    pages:
+                      type: integer
+                stats:
+                  type: object
+                  properties:
+                    total_bookings:
+                      type: integer
+                    completed_bookings:
+                      type: integer
+                    cancelled_bookings:
+                      type: integer
+                    total_spent:
+                      type: number
+                      format: double
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+/customer/recommendations:
+  get:
+    tags:
+      - Customer
+    summary: Get personalized recommendations
+    description: Get AI-powered personalized business and service recommendations
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum: [business, service, offer, time_slot]
+        description: Type of recommendations to get
+      - in: query
+        name: lat
+        schema:
+          type: number
+          format: double
+        description: User latitude for location-based recommendations
+      - in: query
+        name: lon
+        schema:
+          type: number
+          format: double
+        description: User longitude for location-based recommendations
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 10
+        description: Number of recommendations to return
+    responses:
+      200:
+        description: Personalized recommendations
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recommendations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                        enum: [business, service, offer, time_slot]
+                      title:
+                        type: string
+                      description:
+                        type: string
+                      confidence_score:
+                        type: number
+                        format: double
+                        minimum: 0
+                        maximum: 1
+                      reasoning:
+                        type: string
+                      business_id:
+                        type: string
+                      service_name:
+                        type: string
+                      image_url:
+                        type: string
+                      price:
+                        type: number
+                        format: double
+                      rating:
+                        type: number
+                        format: double
+                      distance:
+                        type: number
+                        format: double
+                      available_slots:
+                        type: array
+                        items:
+                          type: string
+                          format: date-time
+                user_preferences:
+                  type: object
+                  properties:
+                    preferred_services:
+                      type: array
+                      items:
+                        type: string
+                    budget_range:
+                      type: object
+                      properties:
+                        min:
+                          type: number
+                        max:
+                          type: number
+                    preferred_times:
+                      type: array
+                      items:
+                        type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+/customer/preferences:
+  get:
+    tags:
+      - Customer
+    summary: Get customer preferences
+    description: Retrieve customer's preferences for personalization
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Customer preferences
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferred_services:
+                  type: array
+                  items:
+                    type: string
+                preferred_locations:
+                  type: array
+                  items:
+                    type: string
+                budget_range:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                    max:
+                      type: number
+                preferred_times:
+                  type: array
+                  items:
+                    type: string
+                notification_preferences:
+                  type: object
+                  properties:
+                    email:
+                      type: boolean
+                    sms:
+                      type: boolean
+                    push:
+                      type: boolean
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+  put:
+    tags:
+      - Customer
+    summary: Update customer preferences
+    description: Update customer preferences for better personalization
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              preferred_services:
+                type: array
+                items:
+                  type: string
+                description: Preferred service types
+              preferred_locations:
+                type: array
+                items:
+                  type: string
+                description: Preferred location areas
+              budget_range:
+                type: object
+                properties:
+                  min:
+                    type: number
+                    minimum: 0
+                  max:
+                    type: number
+                    minimum: 0
+                description: Budget range for services
+              preferred_times:
+                type: array
+                items:
+                  type: string
+                description: Preferred appointment times
+              notification_preferences:
+                type: object
+                properties:
+                  email:
+                    type: boolean
+                  sms:
+                    type: boolean
+                  push:
+                    type: boolean
+                description: Notification preferences
+          example:
+            preferred_services: ["haircut", "massage", "facial"]
+            budget_range:
+              min: 50
+              max: 200
+            preferred_times: ["morning", "weekend"]
+            notification_preferences:
+              email: true
+              sms: false
+              push: true
+    responses:
+      200:
+        description: Preferences updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Preferences updated successfully"
+      400:
+        $ref: '#/components/responses/ValidationError'
+      401:
+        $ref: '#/components/responses/UnauthorizedError'

@@ -1,4 +1,9 @@
 
+// Import New Relic first, before any other modules
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+  require('newrelic');
+}
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -6,6 +11,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 import { connectDatabase } from './config/database';
 import { logger, stream } from './utils/logger';
 import businessesRouter from './routes/businesses';
@@ -19,6 +25,9 @@ import reviewsRouter from './routes/reviews';
 import waitlistRouter from './routes/waitlist';
 import stripeWebhooksRouter from './routes/webhooks';
 import { runSimulatedCronJobs } from './services/notificationService';
+import { swaggerSpec, swaggerOptions } from './swagger/swagger.config';
+import { performanceMonitoring } from './services/performanceMonitoringService';
+import { cacheService } from './services/cacheService';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +88,9 @@ app.use('/api/', limiter);
 // HTTP request logging
 app.use(morgan('combined', { stream }));
 
+// Performance monitoring middleware
+app.use(performanceMonitoring.createMiddleware());
+
 // --- Core Middleware ---
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
   process.env.ALLOWED_ORIGINS.split(',') : 
@@ -107,20 +119,29 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.set('trust proxy', 1);
 
 // --- Health Check ---
-app.get('/api/health', (req: express.Request, res: express.Response) => {
+app.get('/api/health', async (req: express.Request, res: express.Response) => {
+  const performanceSummary = performanceMonitoring.getPerformanceSummary();
+  const cacheStats = await cacheService.getStats();
+  
   res.status(200).json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    monitoring: performanceSummary,
+    cache: cacheStats
   });
 });
+
+// --- Swagger Documentation ---
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
 
 // --- API Root ---
 app.get('/api', (req: express.Request, res: express.Response) => {
   res.json({
     message: 'Reservio API is running!',
     version: '1.0.0',
+    documentation: '/api/docs',
     endpoints: {
       auth: '/api/auth',
       business: '/api/biz',
@@ -165,6 +186,18 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     userAgent: req.get('User-Agent')
   });
   
+  // Track error with performance monitoring
+  performanceMonitoring.trackError(err, {
+    endpoint: req.originalUrl,
+    userType: (req as any).user?.role,
+    userId: (req as any).user?.id,
+    additionalData: {
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    }
+  });
+  
   res.status(500).json({
     message: 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { error: err.message })
@@ -192,17 +225,19 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
+  server.close(async () => {
+    await cacheService.disconnect();
     logger.info('Process terminated');
     process.exit(0);
   });
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
+  server.close(async () => {
+    await cacheService.disconnect();
     logger.info('Process terminated');
     process.exit(0);
   });

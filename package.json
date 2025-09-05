@@ -9,13 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.10",
     "@stripe/react-stripe-js": "^2.9.0",
     "@stripe/stripe-js": "^4.1.0",
+    "@types/google.maps": "^3.58.1",
     "date-fns": "^3.6.0",
     "jspdf": "^3.0.2",
     "jspdf-autotable": "^5.0.2",
+    "mapbox-gl": "^3.14.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-map-gl": "^8.0.4",
     "react-router-dom": "^6.23.1",
     "recharts": "^2.12.7"
   },

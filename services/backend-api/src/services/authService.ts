@@ -4,6 +4,7 @@ import { JWTUtil } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { AuthResponse, AdminAuthResponse, BusinessAuthResponse } from '../types/auth';
 import { Types } from 'mongoose';
+import { performanceMonitoring } from './performanceMonitoringService';
 
 
 export const loginCustomer = async (email: string, password: string): Promise<AuthResponse> => {
@@ -51,6 +52,9 @@ export const loginCustomer = async (email: string, password: string): Promise<Au
 
         logger.info(`Customer login successful: ${email}`);
         
+        // Track successful login
+        performanceMonitoring.trackAuthEvent('login', 'customer', true, publicUser.id);
+        
         return {
             user: publicUser,
             accessToken,
@@ -58,6 +62,10 @@ export const loginCustomer = async (email: string, password: string): Promise<Au
         };
     } catch (error) {
         logger.error(`Customer login failed for ${email}:`, error);
+        
+        // Track failed login
+        performanceMonitoring.trackAuthEvent('login', 'customer', false);
+        
         throw error;
     }
 };
@@ -102,6 +110,9 @@ export const signupCustomer = async (fullName: string, email: string, password: 
         };
 
         logger.info(`Customer signup successful: ${email}`);
+        
+        // Track successful signup
+        performanceMonitoring.trackAuthEvent('signup', 'customer', true, publicUser.id);
         
         return {
             user: publicUser,

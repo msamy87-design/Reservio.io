@@ -1,0 +1,381 @@
+# Business marketplace endpoints
+/businesses/search:
+  get:
+    tags:
+      - Businesses
+    summary: Search businesses
+    description: Search for businesses with advanced filtering options
+    parameters:
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: Search query for business names or services
+        example: "hair salon"
+      - in: query
+        name: lat
+        schema:
+          type: number
+          format: double
+        description: Latitude for location-based search
+      - in: query
+        name: lon
+        schema:
+          type: number
+          format: double
+        description: Longitude for location-based search
+      - in: query
+        name: maxDistance
+        schema:
+          type: number
+          format: double
+          default: 25
+        description: Maximum distance in kilometers
+      - in: query
+        name: minPrice
+        schema:
+          type: number
+          format: double
+        description: Minimum service price filter
+      - in: query
+        name: maxPrice
+        schema:
+          type: number
+          format: double
+        description: Maximum service price filter
+      - in: query
+        name: minRating
+        schema:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+        description: Minimum rating filter
+      - in: query
+        name: priceTiers
+        schema:
+          type: array
+          items:
+            type: string
+            enum: ['$', '$$', '$$$']
+        description: Price tier filters
+      - in: query
+        name: amenities
+        schema:
+          type: array
+          items:
+            type: string
+            enum: ['wifi', 'parking', 'wheelchair_accessible', 'credit_cards', 'walk_ins', 'online_booking']
+        description: Amenity filters
+      - in: query
+        name: isOpenNow
+        schema:
+          type: boolean
+        description: Filter for currently open businesses
+      - in: query
+        name: hasAvailability
+        schema:
+          type: boolean
+        description: Filter for businesses with available slots
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number for pagination
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+        description: Number of results per page
+    responses:
+      200:
+        description: Search results
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businesses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Business'
+                pagination:
+                  type: object
+                  properties:
+                    page:
+                      type: integer
+                    limit:
+                      type: integer
+                    total:
+                      type: integer
+                    pages:
+                      type: integer
+                filters_applied:
+                  $ref: '#/components/schemas/SearchFilters'
+      400:
+        $ref: '#/components/responses/ValidationError'
+
+/businesses/{businessId}:
+  get:
+    tags:
+      - Businesses
+    summary: Get business details
+    description: Retrieve detailed information about a specific business
+    parameters:
+      - in: path
+        name: businessId
+        required: true
+        schema:
+          type: string
+        description: Business ID
+    responses:
+      200:
+        description: Business details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Business'
+      404:
+        description: Business not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              message: "Business not found"
+              code: "BUSINESS_NOT_FOUND"
+
+/businesses/{businessId}/services:
+  get:
+    tags:
+      - Businesses
+    summary: Get business services
+    description: Retrieve all services offered by a business
+    parameters:
+      - in: path
+        name: businessId
+        required: true
+        schema:
+          type: string
+        description: Business ID
+    responses:
+      200:
+        description: Business services
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                services:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Service'
+      404:
+        description: Business not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/businesses/{businessId}/staff:
+  get:
+    tags:
+      - Businesses
+    summary: Get business staff
+    description: Retrieve all staff members of a business
+    parameters:
+      - in: path
+        name: businessId
+        required: true
+        schema:
+          type: string
+        description: Business ID
+    responses:
+      200:
+        description: Business staff
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                staff:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Staff'
+      404:
+        description: Business not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/businesses/{businessId}/availability:
+  get:
+    tags:
+      - Businesses
+    summary: Check availability
+    description: Check staff availability for specific service and time slots
+    parameters:
+      - in: path
+        name: businessId
+        required: true
+        schema:
+          type: string
+        description: Business ID
+      - in: query
+        name: serviceId
+        required: true
+        schema:
+          type: string
+        description: Service ID
+      - in: query
+        name: staffId
+        schema:
+          type: string
+        description: Specific staff member ID (optional)
+      - in: query
+        name: date
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Date to check availability (YYYY-MM-DD)
+        example: "2024-01-15"
+    responses:
+      200:
+        description: Available time slots
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                business_id:
+                  type: string
+                service_id:
+                  type: string
+                available_slots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      staff_id:
+                        type: string
+                      staff_name:
+                        type: string
+                      time_slots:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            start_time:
+                              type: string
+                              format: time
+                            end_time:
+                              type: string
+                              format: time
+                            available:
+                              type: boolean
+      400:
+        $ref: '#/components/responses/ValidationError'
+      404:
+        description: Business or service not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/businesses/trending:
+  get:
+    tags:
+      - Businesses
+    summary: Get trending businesses
+    description: Retrieve currently trending businesses based on bookings and ratings
+    parameters:
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum: ['week', 'month', 'season']
+          default: 'week'
+        description: Trending period
+      - in: query
+        name: lat
+        schema:
+          type: number
+          format: double
+        description: User latitude for location-based trending
+      - in: query
+        name: lon
+        schema:
+          type: number
+          format: double
+        description: User longitude for location-based trending
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 10
+        description: Number of trending businesses to return
+    responses:
+      200:
+        description: Trending businesses
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                trending_businesses:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/Business'
+                      - type: object
+                        properties:
+                          trending_score:
+                            type: number
+                            format: double
+                          trending_reason:
+                            type: string
+                          booking_velocity:
+                            type: number
+                period:
+                  type: string
+                  enum: ['week', 'month', 'season']
+
+/businesses/featured:
+  get:
+    tags:
+      - Businesses
+    summary: Get featured businesses
+    description: Retrieve featured businesses for the homepage
+    parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 6
+        description: Number of featured businesses to return
+    responses:
+      200:
+        description: Featured businesses
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                featured_businesses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Business'
