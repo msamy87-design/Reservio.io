@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { BusinessIcon } from '../components/Icons';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('contact@groominglounge.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
 

@@ -23,3 +23,16 @@ export const API_BASE_URL =
 
 export const STRIPE_PUBLISHABLE_KEY =
   getClientEnv('VITE_STRIPE_PUBLISHABLE_KEY') || '';
+
+// Environment validation for production
+const isProd = import.meta.env.PROD;
+
+if (isProd) {
+  if (!STRIPE_PUBLISHABLE_KEY.startsWith('pk_')) {
+    console.warn('Warning: Invalid or missing Stripe publishable key in production');
+  }
+  
+  if (!API_BASE_URL || API_BASE_URL === '/api') {
+    console.warn('Warning: API_BASE_URL should be set to your production API URL');
+  }
+}
