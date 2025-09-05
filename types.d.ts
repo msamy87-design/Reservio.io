@@ -6,6 +6,8 @@ export type ReviewStatus = 'Pending' | 'Published' | 'Hidden';
 export type BusinessVerificationStatus = 'pending' | 'approved' | 'suspended';
 export type MarketingChannel = 'Email' | 'SMS' | 'Social';
 export type AudienceType = 'all' | 'frequent' | 'lapsed' | 'new';
+export type TrendingPeriod = 'week' | 'month' | 'season';
+export type SeasonType = 'spring' | 'summer' | 'fall' | 'winter';
 export interface DaySchedule {
     is_working: boolean;
     start_time: string;
@@ -325,6 +327,45 @@ export interface PublicReview {
     comment: string;
     created_at: string;
 }
+export type PriceTier = '$' | '$$' | '$$$';
+export type BusinessAmenity = 'wifi' | 'parking' | 'wheelchair_accessible' | 'credit_cards' | 'walk_ins' | 'online_booking';
+export interface BusinessHours {
+    monday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    tuesday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    wednesday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    thursday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    friday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    saturday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+    sunday: {
+        open: string;
+        close: string;
+        is_open: boolean;
+    };
+}
 export interface PublicBusinessProfile {
     id: string;
     name: string;
@@ -338,6 +379,18 @@ export interface PublicBusinessProfile {
     reviews: PublicReview[];
     latitude?: number;
     longitude?: number;
+    price_tier?: PriceTier;
+    amenities?: BusinessAmenity[];
+    next_available_slot?: string | null;
+    distance_miles?: number;
+    is_open_now?: boolean;
+    business_hours?: BusinessHours;
+    image_gallery?: string[];
+    is_featured?: boolean;
+    is_new_business?: boolean;
+    response_time_minutes?: number;
+    booking_completion_rate?: number;
+    recent_booking_count?: number;
 }
 export interface NewPublicBookingData {
     businessId: string;
@@ -381,4 +434,110 @@ export interface BusinessForAdmin {
     verification_status: BusinessVerificationStatus;
     latitude?: number;
     longitude?: number;
+}
+export interface TrendingService {
+    id: string;
+    name: string;
+    icon: React.ComponentType<any>;
+    query: string;
+    booking_count: number;
+    growth_percentage: number;
+    average_price: number;
+    average_duration: number;
+    popular_times: string[];
+    is_seasonal?: boolean;
+    season?: SeasonType;
+    trending_period: TrendingPeriod;
+}
+export interface SeasonalHighlight {
+    id: string;
+    title: string;
+    description: string;
+    services: string[];
+    image_url: string;
+    season: SeasonType;
+    discount_percentage?: number;
+    cta_text: string;
+    cta_link: string;
+}
+export interface PopularLocation {
+    id: string;
+    name: string;
+    business_count: number;
+    average_rating: number;
+    popular_services: string[];
+    coordinates: {
+        lat: number;
+        lng: number;
+    };
+}
+export interface CustomerReview {
+    id: string;
+    customer_name: string;
+    customer_image?: string;
+    business_name: string;
+    service_name: string;
+    rating: number;
+    comment: string;
+    before_image?: string;
+    after_image?: string;
+    date: string;
+    is_featured: boolean;
+    helpful_count: number;
+}
+export interface UserPreferences {
+    id: string;
+    preferred_services: string[];
+    preferred_locations: string[];
+    budget_range: {
+        min: number;
+        max: number;
+    };
+    preferred_times: string[];
+    favorite_businesses: string[];
+    booking_history: string[];
+    notification_preferences: {
+        email: boolean;
+        sms: boolean;
+        push: boolean;
+    };
+}
+export interface PersonalizedRecommendation {
+    id: string;
+    type: 'service' | 'business' | 'offer' | 'time_slot';
+    title: string;
+    description: string;
+    confidence_score: number;
+    reasoning: string;
+    business_id?: string;
+    service_name?: string;
+    offer_id?: string;
+    image_url?: string;
+    price?: number;
+    rating?: number;
+    distance?: number;
+    available_slots?: string[];
+}
+export interface RecentlyViewed {
+    id: string;
+    business_id: string;
+    business_name: string;
+    service_name?: string;
+    image_url?: string;
+    rating: number;
+    price_range: string;
+    viewed_at: string;
+    booking_url: string;
+}
+export interface TrendingNearYou {
+    id: string;
+    business_name: string;
+    service_name: string;
+    trending_reason: string;
+    booking_velocity: number;
+    image_url?: string;
+    rating: number;
+    price: number;
+    distance_miles: number;
+    next_available: string;
 }

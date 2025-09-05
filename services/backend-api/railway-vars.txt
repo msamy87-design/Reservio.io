@@ -1,0 +1,19 @@
+# Copy these environment variables to Railway dashboard
+# Don't commit this file - for reference only
+
+NODE_ENV=production
+PORT=$PORT
+MONGODB_URI=mongodb+srv://reservio-admin:HruYko0Tnoe4OsAa@reservio-production.sl33lj4.mongodb.net/?retryWrites=true&w=majority&appName=reservio-production
+JWT_SECRET=your-super-secret-jwt-key-please-change-this-in-production-must-be-32-chars-minimum
+JWT_EXPIRE=15m
+JWT_REFRESH_EXPIRE=7d
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+STRIPE_SECRET_KEY=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
+STRIPE_WEBHOOK_SECRET=whsec_kov4lhR9x3L323c9kuj8g4lRHkUoSMDT
+GEMINI_API_KEY=AIzaSyB1DzN9NjITJxOUCkfOFY29srRJ9hBUJqg
+FRONTEND_URL=https://reservio-saas-7hxoy329q-mos-projects-502be787.vercel.app
+ALLOWED_ORIGINS=https://reservio-saas-7hxoy329q-mos-projects-502be787.vercel.app
+LOG_LEVEL=info
+COOKIE_SECRET=your-cookie-secret-for-signing-cookies-change-in-production
+BCRYPT_ROUNDS=12
