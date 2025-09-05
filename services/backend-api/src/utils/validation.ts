@@ -65,14 +65,6 @@ export const customerSchemas = {
   })
 };
 
-// Review validation schemas
-export const reviewSchemas = {
-  create: Joi.object({
-    booking_id: objectId.required(),
-    rating: Joi.number().integer().min(1).max(5).required(),
-    comment: Joi.string().trim().max(1000).allow('').optional()
-  })
-};
 
 // Business data validation schemas
 export const businessSchemas = {
@@ -233,8 +225,13 @@ export const publicSchemas = {
 };
 
 
-// Review validation schemas
+// Consolidated review validation schemas
 export const reviewSchemas = {
+  create: Joi.object({
+    booking_id: objectId.required(),
+    rating: Joi.number().integer().min(1).max(5).required(),
+    comment: Joi.string().trim().max(1000).allow('').optional()
+  }),
   createReview: Joi.object({
     booking_id: objectId.required(),
     rating: Joi.number().integer().min(1).max(5).required(),
