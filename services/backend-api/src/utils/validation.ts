@@ -218,7 +218,6 @@ export const publicSchemas = {
       email: email,
       phone: phone.required()
     }).required(),
-    paymentIntentId: Joi.string().optional()
   }),
 
   searchBusinesses: Joi.object({
@@ -233,14 +232,6 @@ export const publicSchemas = {
   })
 };
 
-// Payment validation schemas
-export const paymentSchemas = {
-  createPaymentIntent: Joi.object({
-    bookingId: objectId.required(),
-    amount: Joi.number().min(0).max(100000).precision(2).required(),
-    currency: Joi.string().valid('USD', 'EUR', 'GBP').default('USD')
-  })
-};
 
 // Review validation schemas
 export const reviewSchemas = {

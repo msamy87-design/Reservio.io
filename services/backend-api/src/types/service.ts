@@ -59,7 +59,6 @@ export interface BookingCreationData {
     email: string;
     phone?: string;
   };
-  paymentIntentId?: string;
 }
 
 export interface BookingCancellationRequest {

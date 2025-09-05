@@ -22,11 +22,9 @@ import bookingsRouter from './routes/bookings';
 import authRouter from './routes/auth';
 import customerRouter from './routes/customer';
 import bizRouter from './routes/biz';
-import paymentsRouter from './routes/payments';
 import adminRouter from './routes/admin';
 import reviewsRouter from './routes/reviews';
 import waitlistRouter from './routes/waitlist';
-import stripeWebhooksRouter from './routes/webhooks';
 import { runSimulatedCronJobs } from './services/notificationService';
 import { swaggerSpec, swaggerOptions } from './swagger/swagger.config';
 import { performanceMonitoring } from './services/performanceMonitoringService';
@@ -76,7 +74,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.stripe.com"],
+      connectSrc: ["'self'"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -276,7 +274,6 @@ app.get('/api', (req: express.Request, res: express.Response) => {
 });
 
 // ⚠️ Webhooks must come BEFORE JSON body parsing
-app.use('/api/webhooks', stripeWebhooksRouter);
 
 // JSON/body parsers for normal routes
 app.use(express.json({ limit: '10mb' }));
@@ -288,7 +285,6 @@ app.use('/api/auth', trackRegistrationAnalytics, authRouter);
 app.use('/api/customer', customerRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/biz', bizRouter);
-app.use('/api/payments', trackPaymentAnalytics('payment_api'), paymentsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/waitlist', waitlistRouter);
 

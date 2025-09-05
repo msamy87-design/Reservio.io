@@ -141,9 +141,8 @@ export const createPublicBooking = async (data: NewPublicBookingData): Promise<B
                 currency: business.currency
             },
             payment: {
-                status: data.paymentIntentId ? 'deposit_paid' : 'unpaid',
-                stripe_payment_intent_id: data.paymentIntentId,
-                paid_amount: data.paymentIntentId ? depositAmount : 0,
+                status: 'unpaid',
+                paid_amount: 0,
                 refunded_amount: 0
             },
             addOns: [],

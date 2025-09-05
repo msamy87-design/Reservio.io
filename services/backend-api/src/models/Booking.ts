@@ -28,7 +28,6 @@ export interface IBooking extends Document {
   payment: {
     status: 'unpaid' | 'deposit_paid' | 'paid_in_full' | 'refunded' | 'partially_refunded';
     method?: 'cash' | 'card' | 'online';
-    stripe_payment_intent_id?: string;
     transaction_id?: string;
     paid_amount: number;
     refunded_amount: number;
