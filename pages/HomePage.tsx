@@ -15,6 +15,11 @@ import LocationBasedFeatures from '../components/LocationBasedFeatures';
 import SocialProofTrust from '../components/SocialProofTrust';
 import ValuePropositions from '../components/ValuePropositions';
 import ForBusinessOwners from '../components/ForBusinessOwners';
+import PersonalizedExperience from '../components/PersonalizedExperience';
+import InteractiveElements from '../components/InteractiveElements';
+import BusinessInsights from '../components/BusinessInsights';
+import EnhancedSearchDiscovery from '../components/EnhancedSearchDiscovery';
+import SmartFeatures from '../components/SmartFeatures';
 
 const categories = [
     { name: 'Hair Salons', icon: ScissorsIcon, query: 'haircut' },
@@ -164,6 +169,9 @@ const HomePage: React.FC = () => {
             {/* Value Propositions Section */}
             <ValuePropositions />
 
+            {/* Personalized Experience Section */}
+            <PersonalizedExperience />
+
             {/* How It Works Section */}
             <div className="bg-gray-50 dark:bg-gray-900 py-16 sm:py-24">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -184,6 +192,18 @@ const HomePage: React.FC = () => {
 
             {/* Social Proof & Trust Section */}
             <SocialProofTrust />
+
+            {/* Interactive Elements Section */}
+            <InteractiveElements />
+
+            {/* Business Insights Section */}
+            <BusinessInsights />
+
+            {/* Enhanced Search & Discovery Section */}
+            <EnhancedSearchDiscovery />
+
+            {/* Smart Features Section */}
+            <SmartFeatures />
 
             {/* Featured Businesses Section */}
             <div className="py-16 sm:py-24 bg-white dark:bg-gray-800">

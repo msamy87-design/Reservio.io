@@ -498,3 +498,64 @@ export interface CustomerReview {
     is_featured: boolean;
     helpful_count: number;
 }
+
+// Personalization Features
+export interface UserPreferences {
+    id: string;
+    preferred_services: string[];
+    preferred_locations: string[];
+    budget_range: {
+        min: number;
+        max: number;
+    };
+    preferred_times: string[];
+    favorite_businesses: string[];
+    booking_history: string[];
+    notification_preferences: {
+        email: boolean;
+        sms: boolean;
+        push: boolean;
+    };
+}
+
+export interface PersonalizedRecommendation {
+    id: string;
+    type: 'service' | 'business' | 'offer' | 'time_slot';
+    title: string;
+    description: string;
+    confidence_score: number;
+    reasoning: string;
+    business_id?: string;
+    service_name?: string;
+    offer_id?: string;
+    image_url?: string;
+    price?: number;
+    rating?: number;
+    distance?: number;
+    available_slots?: string[];
+}
+
+export interface RecentlyViewed {
+    id: string;
+    business_id: string;
+    business_name: string;
+    service_name?: string;
+    image_url?: string;
+    rating: number;
+    price_range: string;
+    viewed_at: string;
+    booking_url: string;
+}
+
+export interface TrendingNearYou {
+    id: string;
+    business_name: string;
+    service_name: string;
+    trending_reason: string;
+    booking_velocity: number;
+    image_url?: string;
+    rating: number;
+    price: number;
+    distance_miles: number;
+    next_available: string;
+}
