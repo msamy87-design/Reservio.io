@@ -1,118 +1,182 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { PublicCustomerUser } from '../types/customer';
-import { AdminUser } from '../../../../types';
-
-// In a real app, you would use a library like jsonwebtoken to verify the token
-const mockVerifyToken = (token: string): { user: PublicCustomerUser | AdminUser } | null => {
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload;
-    } catch (e) {
-        return null;
-    }
-};
-
-const mockVerifyBusinessToken = (token: string): { businessId: string, email: string } | null => {
-     if (!token || !token.startsWith('mock_token_user_')) return null;
-     // This is a simplified mock. In a real app, the JWT would contain businessId, roles, etc.
-     // For now, we'll hardcode the business ID for the default user.
-     const userId = token.replace('mock_token_', '');
-     if (userId.includes('user_')) { // simple check for default user
-        return { businessId: 'biz_1', email: 'contact@groominglounge.com' };
-     }
-     return null;
-}
+import { JWTUtil } from '../utils/jwt';
+import { BusinessUser, CustomerUser, AdminUser } from '../models/User';
+import { logger } from '../utils/logger';
 
 export interface AuthenticatedRequest extends Request {
-  customer?: PublicCustomerUser;
+  customer?: {
+    id: string;
+    email: string;
+    fullName: string;
+  };
 }
+
 export interface AuthenticatedBusinessRequest extends Request {
-  business?: { businessId: string, email: string };
+  business?: {
+    id: string;
+    email: string;
+    businessName: string;
+    role: string;
+  };
 }
+
 export interface AuthenticatedAdminRequest extends Request {
-  admin?: AdminUser;
+  admin?: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+  };
 }
 
-export const protectCustomer = (req: Request, res: Response, next: NextFunction): void => {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
-    }
-
-    if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
-        return;
-    }
-
+export const protectCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const decoded = mockVerifyToken(token);
-        if (!decoded || !decoded.user || (decoded.user as AdminUser).role === 'superadmin') {
-            res.status(401).json({ message: 'Not authorized, token failed' });
+        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        
+        if (!token) {
+            res.status(401).json({ message: 'Access denied. No token provided.' });
             return;
         }
+
+        const decoded = JWTUtil.verifyToken(token);
         
-        (req as AuthenticatedRequest).customer = decoded.user as PublicCustomerUser;
+        if (decoded.type !== 'access') {
+            res.status(401).json({ message: 'Invalid token type' });
+            return;
+        }
+
+        // Verify user exists and is active
+        const user = await CustomerUser.findById(decoded.userId).select('email fullName isActive');
+        if (!user || !user.isActive) {
+            res.status(401).json({ message: 'User not found or inactive' });
+            return;
+        }
+
+        (req as AuthenticatedRequest).customer = {
+            id: user._id.toString(),
+            email: user.email,
+            fullName: user.fullName
+        };
+        
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        logger.error('Customer authentication error:', error);
+        res.status(401).json({ message: 'Invalid token' });
     }
 };
 
-export const protectBusiness = (req: Request, res: Response, next: NextFunction): void => {
-    let token;
-    // NOTE: The mock business portal uses sessionStorage, so we can't get the token from headers.
-    // This is a workaround for the mock environment. In a real app with separate frontends,
-    // you would pass the token in the Authorization header.
-    // For now, we assume the token is valid if any mock business token exists.
-    // Let's check for a body parameter for simulation.
-    token = req.headers.authorization?.split(' ')[1] || (req.body as any).token;
-    
-    // This is a HACK for this project's structure since we can't access session storage from the backend API.
-    // We will simulate a valid token.
-    token = 'mock_token_user_default';
-
-
-    if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
-        return;
-    }
-
+export const protectBusiness = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const decoded = mockVerifyBusinessToken(token);
-        if (!decoded) {
-            res.status(401).json({ message: 'Not authorized, token failed' });
+        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        
+        if (!token) {
+            res.status(401).json({ message: 'Access denied. No token provided.' });
             return;
         }
+
+        const decoded = JWTUtil.verifyToken(token);
         
-        (req as AuthenticatedBusinessRequest).business = decoded;
+        if (decoded.type !== 'access') {
+            res.status(401).json({ message: 'Invalid token type' });
+            return;
+        }
+
+        // Verify business user exists and is active
+        const user = await BusinessUser.findById(decoded.userId).select('email businessName role isActive');
+        if (!user || !user.isActive) {
+            res.status(401).json({ message: 'User not found or inactive' });
+            return;
+        }
+
+        (req as AuthenticatedBusinessRequest).business = {
+            id: user._id.toString(),
+            email: user.email,
+            businessName: user.businessName,
+            role: user.role
+        };
+        
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        logger.error('Business authentication error:', error);
+        res.status(401).json({ message: 'Invalid token' });
     }
 };
 
-export const protectAdmin = (req: Request, res: Response, next: NextFunction): void => {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
-    }
-
-    if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
-        return;
-    }
-
+export const protectAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const decoded = mockVerifyToken(token);
-        if (!decoded || !decoded.user || (decoded.user as AdminUser).role !== 'superadmin') {
-            res.status(401).json({ message: 'Not authorized, token invalid or not an admin' });
+        const token = JWTUtil.extractTokenFromHeader(req.headers.authorization);
+        
+        if (!token) {
+            res.status(401).json({ message: 'Access denied. No token provided.' });
             return;
         }
+
+        const decoded = JWTUtil.verifyToken(token);
         
-        (req as AuthenticatedAdminRequest).admin = decoded.user as AdminUser;
+        if (decoded.type !== 'access') {
+            res.status(401).json({ message: 'Invalid token type' });
+            return;
+        }
+
+        // Verify admin user exists and is active
+        const user = await AdminUser.findById(decoded.userId).select('email fullName role isActive');
+        if (!user || !user.isActive || user.role !== 'superadmin') {
+            res.status(401).json({ message: 'Admin access denied' });
+            return;
+        }
+
+        (req as AuthenticatedAdminRequest).admin = {
+            id: user._id.toString(),
+            email: user.email,
+            fullName: user.fullName,
+            role: user.role
+        };
+        
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        logger.error('Admin authentication error:', error);
+        res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
+// Middleware to validate refresh tokens
+export const validateRefreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { refreshToken } = req.body;
+        
+        if (!refreshToken) {
+            res.status(401).json({ message: 'Refresh token required' });
+            return;
+        }
+
+        const decoded = JWTUtil.verifyToken(refreshToken);
+        
+        if (decoded.type !== 'refresh') {
+            res.status(401).json({ message: 'Invalid token type' });
+            return;
+        }
+
+        // Check if refresh token exists in user's token list
+        let user;
+        if (decoded.role === 'superadmin') {
+            user = await AdminUser.findById(decoded.userId);
+        } else if (['Owner', 'Manager', 'Assistant'].includes(decoded.role)) {
+            user = await BusinessUser.findById(decoded.userId);
+        } else {
+            user = await CustomerUser.findById(decoded.userId);
+        }
+
+        if (!user || !user.isActive || !user.refreshTokens.includes(refreshToken)) {
+            res.status(401).json({ message: 'Invalid refresh token' });
+            return;
+        }
+
+        req.body.decodedToken = decoded;
+        req.body.user = user;
+        next();
+    } catch (error) {
+        logger.error('Refresh token validation error:', error);
+        res.status(401).json({ message: 'Invalid refresh token' });
     }
 };

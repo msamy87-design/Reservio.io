@@ -54,29 +54,30 @@ const handleResponse = async (response: Response) => {
     return data as any;
 };
 
+import { apiClient } from './apiClient';
+
 const getAuthHeaders = () => {
-    const token = sessionStorage.getItem('reservio_token') || 'mock_token_user_default';
-    return {
+    const token = apiClient.getAccessToken();
+    const headers: any = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
     };
+    
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
 };
 
 // --- Auth ---
-export const login = (email: string, password: string) => fetch('/api/biz/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-}).then(handleResponse);
+export const login = (email: string, password: string, remember: boolean = false) => 
+    apiClient.login(email, password, remember);
 
-export const signup = (businessName: string, email: string, password: string) => fetch('/api/biz/signup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ businessName, email, password }),
-}).then(handleResponse);
+export const signup = (businessName: string, email: string, password: string) => 
+    apiClient.signup(businessName, email, password);
 
-export const logout = () => fetch('/api/biz/logout', { method: 'POST', headers: getAuthHeaders() });
-export const getCurrentUser = () => fetch('/api/biz/me', { headers: getAuthHeaders() }).then(handleResponse);
+export const logout = () => apiClient.logout();
+export const getCurrentUser = () => apiClient.getCurrentUser();
 
 // --- API Keys ---
 export const fetchApiKeys = (): Promise<ApiKey[]> => fetch('/api/biz/api-keys', { headers: getAuthHeaders() }).then(handleResponse);
