@@ -42,7 +42,7 @@ export const customerLogin = async (req: Request, res: Response): Promise<void> 
         
         res.status(200).json({
             user: result.user,
-            message: 'Login successful'
+            token: result.accessToken
         });
     } catch (error) {
         logger.error('Customer login error:', error);
@@ -81,7 +81,7 @@ export const customerSignup = async (req: Request, res: Response): Promise<void>
         
         res.status(201).json({
             user: result.user,
-            message: 'Account created successfully'
+            token: result.accessToken
         });
     } catch (error) {
         logger.error('Customer signup error:', error);
@@ -121,7 +121,7 @@ export const businessLogin = async (req: Request, res: Response): Promise<void> 
         
         res.status(200).json({
             user: result.user,
-            message: 'Login successful'
+            token: result.accessToken
         });
     } catch (error) {
         logger.error('Business login error:', error);
@@ -159,7 +159,7 @@ export const businessSignup = async (req: Request, res: Response): Promise<void>
         
         res.status(201).json({
             user: result.user,
-            message: 'Business account created successfully'
+            token: result.accessToken
         });
     } catch (error) {
         logger.error('Business signup error:', error);
@@ -198,7 +198,7 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
         
         res.status(200).json({
             user: result.user,
-            message: 'Admin login successful'
+            token: result.accessToken
         });
     } catch (error) {
         logger.error('Admin login error:', error);

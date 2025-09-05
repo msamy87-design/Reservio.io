@@ -14,8 +14,6 @@ export const connectDatabase = async (): Promise<void> => {
       maxPoolSize: 10, // Maintain up to 10 socket connections
       serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      bufferMaxEntries: 0, // Disable mongoose buffering
-      bufferCommands: false, // Disable mongoose buffering
       maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
       family: 4 // Use IPv4, skip trying IPv6
     };
@@ -75,9 +73,7 @@ export const connectDatabase = async (): Promise<void> => {
       process.exit(1);
     } else {
       // In development, warn but continue for API documentation testing
-      logger.warn('⚠️  DEVELOPMENT MODE: Continuing without database connection');
-      logger.warn('⚠️  Most API endpoints will not work without a database');
-      logger.warn('⚠️  Start MongoDB or set NODE_ENV=production to fail fast');
+      logger.warn('Continuing without database connection for API documentation testing');
     }
   }
 };

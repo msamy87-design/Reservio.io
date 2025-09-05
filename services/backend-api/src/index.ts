@@ -1,4 +1,8 @@
 
+// Load environment variables first
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Import New Relic first, before any other modules
 if (process.env.NEW_RELIC_LICENSE_KEY) {
   require('newrelic');
@@ -6,7 +10,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
@@ -45,8 +48,6 @@ import { businessIntelligenceMiddleware, createBusinessIntelligenceRoutes, track
 import { collaborationService } from './services/collaborationService';
 import { collaborationMiddleware, createCollaborationRoutes, trackCollaborationEvents } from './middleware/collaborationMiddleware';
 
-// Load environment variables
-dotenv.config();
 
 // Validate required environment variables
 const requiredEnvVars = [

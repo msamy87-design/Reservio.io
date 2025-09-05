@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google/genai": "^1.17.0",
     "@google/generative-ai": "^0.21.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.9",
@@ -42,6 +43,7 @@
     "ioredis": "^5.7.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
+    "mime": "^4.0.7",
     "mixpanel": "^0.18.1",
     "ml-matrix": "^6.12.1",
     "mongoose": "^8.18.0",

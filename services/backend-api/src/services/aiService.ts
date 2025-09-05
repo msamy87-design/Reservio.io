@@ -5,11 +5,11 @@ import { mockWaitlist, mockBookings, mockServices, mockTransactions } from "../d
 import { sendWaitlistNotification } from "./notificationService";
 import * as dateFns from 'date-fns';
 
-if (!process.env.API_KEY) {
-    console.warn("API_KEY environment variable not set. AI services will be disabled.");
+if (!process.env.GEMINI_API_KEY) {
+    console.warn("GEMINI_API_KEY environment variable not set. AI services will be disabled.");
 }
 
-const ai = process.env.API_KEY ? new GoogleGenerativeAI(process.env.API_KEY) : null;
+const ai = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 interface NoShowRiskPayload {
     serviceId: string;

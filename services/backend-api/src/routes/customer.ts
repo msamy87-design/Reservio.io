@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as customerController from '../controllers/customerController';
 import { protectCustomer } from '../middleware/authMiddleware';
+import { validate, customerSchemas } from '../utils/validation';
 
 const router = Router();
 
@@ -11,17 +12,17 @@ router.use(protectCustomer);
 router.get('/me/bookings', customerController.getMyBookings);
 
 // PATCH /api/customer/me
-router.patch('/me', customerController.updateMyProfile);
+router.patch('/me', validate(customerSchemas.updateProfile), customerController.updateMyProfile);
 
 // PATCH /api/customer/me/password
-router.patch('/me/password', customerController.changeMyPassword);
+router.patch('/me/password', validate(customerSchemas.changePassword), customerController.changeMyPassword);
 
 // --- Favorites Routes ---
 // GET /api/customer/me/favorites
 router.get('/me/favorites', customerController.getMyFavorites);
 
 // POST /api/customer/me/favorites
-router.post('/me/favorites', customerController.addMyFavorite);
+router.post('/me/favorites', validate(customerSchemas.addFavorite), customerController.addMyFavorite);
 
 // DELETE /api/customer/me/favorites/:businessId
 router.delete('/me/favorites/:businessId', customerController.removeMyFavorite);
